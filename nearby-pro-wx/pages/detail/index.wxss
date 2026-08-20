@@ -1,0 +1,84 @@
+.page {
+  min-height: 100vh;
+  padding: 48rpx 40rpx calc(48rpx + env(safe-area-inset-bottom));
+  background: #F4EFE6;
+  box-sizing: border-box;
+}
+
+.kicker {
+  font-size: 24rpx;
+  color: #C45C26;
+  font-weight: 600;
+}
+
+.title {
+  margin-top: 12rpx;
+  font-size: 48rpx;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.meta {
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  color: #78716C;
+}
+
+.block {
+  margin-top: 48rpx;
+}
+
+.block-label {
+  font-size: 22rpx;
+  color: #A8A29E;
+  letter-spacing: 0.08em;
+  margin-bottom: 12rpx;
+}
+
+.desc {
+  font-size: 30rpx;
+  line-height: 1.7;
+}
+
+.contact {
+  font-size: 40rpx;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.actions {
+  margin-top: 64rpx;
+  display: flex;
+  gap: 16rpx;
+}
+
+.btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.btn-dark {
+  background: #C45C26;
+  color: #F4EFE6;
+}
+
+.btn-ghost {
+  background: #EDE8DE;
+  color: #1C1917;
+}
+
+.footer {
+  margin-top: 48rpx;
+  display: flex;
+  gap: 40rpx;
+}
+
+.link {
+  font-size: 24rpx;
+  color: #A8A29E;
+}

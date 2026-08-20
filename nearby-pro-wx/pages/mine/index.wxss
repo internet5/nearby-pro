@@ -1,0 +1,77 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx 40rpx calc(48rpx + env(safe-area-inset-bottom));
+  background: #F4EFE6;
+  box-sizing: border-box;
+}
+
+.hero-title {
+  font-size: 44rpx;
+  font-weight: 700;
+}
+
+.hero-sub {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #78716C;
+  line-height: 1.6;
+}
+
+.empty {
+  margin-top: 80rpx;
+  font-size: 28rpx;
+  color: #78716C;
+  line-height: 1.7;
+}
+
+.card {
+  margin-top: 24rpx;
+  padding: 28rpx;
+  background: #FFFDF8;
+  border-radius: 20rpx;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.name {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.status {
+  font-size: 22rpx;
+  color: #78716C;
+}
+
+.status-1 {
+  color: #3F6212;
+}
+
+.sub {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #A8A29E;
+}
+
+.off {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: #C45C26;
+}
+
+.publish {
+  margin-top: 48rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  background: #1C1917;
+  color: #F4EFE6;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}

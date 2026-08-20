@@ -1,0 +1,17 @@
+# 微信开发者工具
+nearby-pro-wx/miniprogram_npm/
+nearby-pro-wx/node_modules/
+project.private.config.json
+*.iml
+
+# 后端
+target/
+.idea/
+*.class
+*.log
+application-local.yml
+.env
+
+# 系统
+.DS_Store
+Thumbs.db

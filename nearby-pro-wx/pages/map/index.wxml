@@ -1,0 +1,68 @@
+<view class="page">
+  <scroll-view class="chips" scroll-x enhanced show-scrollbar="{{false}}">
+    <view
+      wx:for="{{categories}}"
+      wx:key="id"
+      class="chip {{categoryId === item.id ? 'chip-on' : ''}}"
+      data-id="{{item.id}}"
+      bindtap="onCategory"
+    >{{item.name}}</view>
+  </scroll-view>
+
+  <view class="map-wrap">
+    <map
+      id="jobMap"
+      class="map"
+      latitude="{{latitude}}"
+      longitude="{{longitude}}"
+      scale="{{scale}}"
+      markers="{{markers}}"
+      show-location
+      enable-poi="{{false}}"
+      enable-clustering
+      bindmarkertap="onMarkerTap"
+      bindtap="onMapTap"
+    />
+  </view>
+
+  <view class="sheet {{showList ? 'sheet-full' : ''}}">
+    <view class="toolbar">
+      <view class="tool" bindtap="onLocate">定位</view>
+      <view class="tool" bindtap="toggleList">{{showList ? '看地图' : '看列表'}}</view>
+      <view class="tool tool-on" bindtap="onPublish">发布技能</view>
+    </view>
+
+    <block wx:if="{{showList}}">
+      <view class="sheet-title">附近 {{filtered.length}} 人在接活</view>
+      <scroll-view scroll-y class="list" wx:if="{{filtered.length}}">
+        <view
+          wx:for="{{filtered}}"
+          wx:key="id"
+          class="row"
+          data-id="{{item.id}}"
+          bindtap="onOpenDetail"
+        >
+          <view class="row-pin {{item.categoryCode}}"></view>
+          <view class="row-main">
+            <view class="row-title">{{item.title}}</view>
+            <view class="row-meta">{{item.nickname}} · {{item.categoryName}} · {{item.distanceText}}</view>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="empty" wx:else>这一带还没有人发布，换个分类或稍后过来看</view>
+    </block>
+
+    <block wx:else>
+      <view wx:if="{{selected}}" class="card" data-id="{{selected.id}}" bindtap="onOpenDetail">
+        <view class="card-kicker">{{selected.categoryName}} · {{selected.distanceText}}</view>
+        <view class="card-title">{{selected.title}}</view>
+        <view class="card-sub">{{selected.nickname}} · {{selected.address}}</view>
+        <view class="card-go">查看联系方式</view>
+      </view>
+      <view wx:else class="hint">
+        <view class="hint-num">附近 {{filtered.length}} 人在接活</view>
+        <view class="hint-sub">点地图上的标记，或切到列表浏览</view>
+      </view>
+    </block>
+  </view>
+</view>

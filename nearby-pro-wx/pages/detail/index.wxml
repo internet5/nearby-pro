@@ -1,0 +1,30 @@
+<view class="page" wx:if="{{item}}">
+  <view class="kicker">{{item.categoryName}}</view>
+  <view class="title">{{item.title}}</view>
+  <view class="meta">{{item.nickname}} · {{item.distanceText || item.address}}</view>
+
+  <view class="block">
+    <view class="block-label">怎么找我</view>
+    <view class="desc">{{item.description || '发布人暂未填写说明'}}</view>
+  </view>
+
+  <view class="block">
+    <view class="block-label">位置</view>
+    <view class="desc">{{item.address || '地图标记位置'}}</view>
+  </view>
+
+  <view class="block">
+    <view class="block-label">{{item.contactType === 'phone' ? '手机号' : '微信号'}}</view>
+    <view class="contact">{{item.contactValue}}</view>
+  </view>
+
+  <view class="actions">
+    <view class="btn btn-dark" bindtap="onCopy">复制联系方式</view>
+    <view class="btn btn-ghost" wx:if="{{item.contactType === 'phone'}}" bindtap="onCall">打电话</view>
+  </view>
+
+  <view class="footer">
+    <text class="link" bindtap="onReport">举报</text>
+    <text wx:if="{{item.isOwner}}" class="link" bindtap="onOffline">下架这条发布</text>
+  </view>
+</view>

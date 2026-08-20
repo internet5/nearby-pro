@@ -1,0 +1,17 @@
+page {
+  background: #F4EFE6;
+  color: #1C1917;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+.btn-reset {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  line-height: inherit;
+}
+
+.btn-reset::after {
+  border: none;
+}

@@ -1,0 +1,44 @@
+{
+  "pages": [
+    "pages/map/index",
+    "pages/publish/index",
+    "pages/detail/index",
+    "pages/mine/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#F4EFE6",
+    "navigationBarTitleText": "附近职人",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F4EFE6"
+  },
+  "tabBar": {
+    "color": "#8A8178",
+    "selectedColor": "#C45C26",
+    "backgroundColor": "#F4EFE6",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/map/index",
+        "text": "附近",
+        "iconPath": "assets/tabbar/map.png",
+        "selectedIconPath": "assets/tabbar/map-active.png"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "assets/tabbar/mine.png",
+        "selectedIconPath": "assets/tabbar/mine-active.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置将用于查找附近的自由职业者"
+    }
+  },
+  "requiredPrivateInfos": ["getLocation", "chooseLocation"],
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

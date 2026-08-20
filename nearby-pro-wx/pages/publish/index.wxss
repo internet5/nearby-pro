@@ -1,0 +1,93 @@
+.page {
+  min-height: 100vh;
+  padding: 32rpx 40rpx calc(48rpx + env(safe-area-inset-bottom));
+  background: #F4EFE6;
+  box-sizing: border-box;
+}
+
+.label {
+  margin: 36rpx 0 16rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #78716C;
+  letter-spacing: 0.08em;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.chip {
+  padding: 12rpx 24rpx;
+  background: #EDE8DE;
+  color: #44403C;
+  font-size: 26rpx;
+  border-radius: 999rpx;
+}
+
+.chip-on {
+  background: #C45C26;
+  color: #F4EFE6;
+}
+
+.input,
+.area,
+.loc {
+  width: 100%;
+  box-sizing: border-box;
+  background: #FFFDF8;
+  border: 2rpx solid #E7E5E4;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  color: #1C1917;
+}
+
+.area {
+  height: 200rpx;
+}
+
+.loc-off {
+  color: #A8A29E;
+}
+
+.seg {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.seg-item {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  background: #EDE8DE;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+}
+
+.seg-on {
+  background: #1C1917;
+  color: #F4EFE6;
+}
+
+.submit {
+  margin-top: 64rpx;
+  height: 96rpx;
+  line-height: 96rpx;
+  text-align: center;
+  background: #C45C26;
+  color: #F4EFE6;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.note {
+  margin-top: 24rpx;
+  font-size: 22rpx;
+  color: #A8A29E;
+  line-height: 1.6;
+}
