@@ -10,6 +10,31 @@
     >{{item.name}}</view>
   </view>
 
+  <view class="label">工种（最多 3 个）</view>
+  <view class="chips">
+    <view
+      wx:for="{{tagItems}}"
+      wx:key="name"
+      class="chip {{item.on ? 'chip-on' : ''}}"
+      data-tag="{{item.name}}"
+      bindtap="onTag"
+    >{{item.name}}</view>
+  </view>
+
+  <block wx:if="{{showSkills}}">
+    <view class="label">具体会做哪些（只勾你会的）</view>
+    <view class="chips">
+      <view
+        wx:for="{{skillItems}}"
+        wx:key="name"
+        class="chip {{item.on ? 'chip-on' : ''}}"
+        data-name="{{item.name}}"
+        bindtap="onSkill"
+      >{{item.name}}</view>
+    </view>
+    <view class="hint">勾了「家电维修」不等于什么电器都会。不会修电磁炉就不要勾，避免对方白跑一趟。</view>
+  </block>
+
   <view class="label">一句话介绍</view>
   <input
     class="input"

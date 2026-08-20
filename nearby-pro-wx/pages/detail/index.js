@@ -3,16 +3,17 @@ const { offlineListing } = require('../../utils/store')
 
 Page({
   data: {
-    item: null
+    item: null,
+    missing: false
   },
 
   onLoad(query) {
     const item = findListing(query.id)
     if (!item) {
-      wx.showToast({ title: '这条发布不存在', icon: 'none' })
+      this.setData({ missing: true })
       return
     }
-    this.setData({ item })
+    this.setData({ item, missing: false })
   },
 
   onCopy() {

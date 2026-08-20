@@ -32,6 +32,13 @@
   color: #F4EFE6;
 }
 
+.hint {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #A8A29E;
+  line-height: 1.5;
+}
+
 .input,
 .area,
 .loc {

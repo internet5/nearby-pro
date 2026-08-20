@@ -1,4 +1,4 @@
-const { findCategory } = require('./categories')
+const { findCategory, joinList } = require('./categories')
 const { addDays } = require('./geo')
 
 const MINE_KEY = 'nearby_pro_my_listings'
@@ -26,6 +26,10 @@ function addListing(payload) {
     categoryId: payload.categoryId,
     categoryCode: cat.code,
     categoryName: cat.name,
+    tags: payload.tags || [],
+    tagText: joinList(payload.tags || []),
+    items: payload.items || [],
+    itemText: joinList(payload.items || []),
     title: payload.title,
     description: payload.description || '',
     photoUrls: [],

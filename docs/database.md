@@ -40,7 +40,8 @@ listings 1 ── N reports
 | sort_order | SMALLINT | 越小越靠前 |
 | enabled | BOOLEAN | 是否展示 |
 
-种子分类：家政保洁、维修安装、家教陪练、摄影跟拍、代驾跑腿、其他。冷启动对外主推前三个。
+种子分类：家政保洁、维修安装、家教陪练、摄影跟拍、代驾跑腿、其他。冷启动对外主推前三个。  
+每个分类挂工种标签；容易误匹配的工种再挂具体项目（如家电维修 → 空调 / 冰箱 / 电磁炉）。发布时必须勾会做的项目，需求方按项目筛选。
 
 ### listings（技能发布）
 
@@ -52,6 +53,8 @@ listings 1 ── N reports
 | user_id | BIGINT | 发布人 |
 | category_id | SMALLINT | 分类 |
 | title | VARCHAR(40) | 一句话技能，如「上门水电维修」 |
+| tags | JSONB | 工种，如 `["家电维修"]` |
+| items | JSONB | 具体会做的项目，如 `["电磁炉","油烟机"]`，只勾会的 |
 | description | VARCHAR(500) | 补充说明 |
 | photo_urls | JSONB | 图片 URL 数组，最多 3 张 |
 | contact_type | VARCHAR(16) | `wechat` 或 `phone` |

@@ -1,7 +1,8 @@
-const { CATEGORIES, findCategory } = require('../../utils/categories')
+const { CATEGORIES, findCategory, tagList, itemsOfTag, shortLabel } = require('../../utils/categories')
 const { distanceMeters, formatDistance } = require('../../utils/geo')
 const { buildMockListings } = require('../../utils/mock')
 const { getMine, isOffline } = require('../../utils/store')
+const { openDetail } = require('../../utils/listings')
 
 const DEFAULT_CENTER = {
   latitude: 30.657486,
@@ -15,11 +16,16 @@ Page({
     scale: 15,
     categories: CATEGORIES,
     categoryId: 0,
+    tagOptions: [],
+    itemOptions: [],
+    activeTag: '',
+    activeItem: '',
     listings: [],
     filtered: [],
     markers: [],
     selected: null,
-    showList: false
+    showList: false,
+    emptyText: '这一带还没有人发布'
   },
 
   onShow() {
@@ -52,8 +58,14 @@ Page({
         item.latitude,
         item.longitude
       )
+      const tags = item.tags || []
+      const items = item.items || []
       return {
         ...item,
+        tags,
+        items,
+        tagText: item.tagText || tags.join(' · '),
+        itemText: item.itemText || items.join(' · '),
         distance: meters,
         distanceText: formatDistance(meters)
       }
@@ -63,12 +75,21 @@ Page({
     this.setData({ listings }, () => this.applyFilter())
   },
 
+  emptyTextOf() {
+    const { activeItem, activeTag } = this.data
+    if (activeItem) return `附近暂时没人会「${activeItem}」，可先看「${activeTag}」全部`
+    if (activeTag) return `附近暂时没有「${activeTag}」，换个工种看看`
+    return '这一带还没有人发布，换个分类或稍后过来看'
+  },
+
   applyFilter() {
-    const { listings, categoryId, selected } = this.data
+    const { listings, categoryId, activeTag, activeItem, selected } = this.data
     const filtered = listings.filter((item) => {
       if (item.status !== 1) return false
-      if (categoryId === 0) return true
-      return item.categoryId === categoryId
+      if (categoryId !== 0 && item.categoryId !== categoryId) return false
+      if (activeTag && !(item.tags || []).includes(activeTag)) return false
+      if (activeItem && !(item.items || []).includes(activeItem)) return false
+      return true
     })
     const selectedStill = selected && filtered.some((item) => item.id === selected.id)
       ? filtered.find((item) => item.id === selected.id)
@@ -76,55 +97,112 @@ Page({
     this.setData({
       filtered,
       selected: selectedStill,
+      emptyText: this.emptyTextOf(),
       markers: filtered.map((item) => this.toMarker(item, selectedStill && selectedStill.id === item.id))
     })
   },
 
   toMarker(item, active) {
     const cat = findCategory(item.categoryId)
+    const label = shortLabel(item)
     return {
       id: Number(item.id),
       latitude: item.latitude,
       longitude: item.longitude,
-      width: active ? 44 : 36,
-      height: active ? 58 : 48,
+      width: active ? 40 : 32,
+      height: active ? 52 : 42,
       iconPath: `/assets/markers/${cat.code}.png`,
       anchor: { x: 0.5, y: 1 },
-      zIndex: active ? 9 : 1
+      zIndex: active ? 9 : 1,
+      callout: {
+        content: active ? `${item.title}  ${item.distanceText}` : label,
+        color: active ? '#F4EFE6' : '#1C1917',
+        fontSize: active ? 13 : 12,
+        borderRadius: 8,
+        bgColor: active ? '#C45C26' : '#FFFDF8',
+        padding: 8,
+        display: 'ALWAYS',
+        textAlign: 'center',
+        borderWidth: active ? 0 : 1,
+        borderColor: '#E7E5E4'
+      }
     }
   },
 
   onCategory(e) {
-    this.setData({ categoryId: Number(e.currentTarget.dataset.id) }, () => this.applyFilter())
+    const categoryId = Number(e.currentTarget.dataset.id)
+    this.setData({
+      categoryId,
+      tagOptions: tagList(categoryId),
+      itemOptions: [],
+      activeTag: '',
+      activeItem: '',
+      selected: null,
+      showList: false
+    }, () => this.applyFilter())
   },
 
-  onMarkerTap(e) {
-    const id = Number(e.markerId || e.detail.markerId)
-    const selected = this.data.filtered.find((item) => Number(item.id) === id)
+  onTagAll() {
+    this.setData({
+      activeTag: '',
+      activeItem: '',
+      itemOptions: [],
+      selected: null
+    }, () => this.applyFilter())
+  },
+
+  onTag(e) {
+    const tag = e.currentTarget.dataset.tag
+    const same = this.data.activeTag === tag
+    this.setData({
+      activeTag: same ? '' : tag,
+      activeItem: '',
+      itemOptions: same ? [] : itemsOfTag(this.data.categoryId, tag),
+      selected: null
+    }, () => this.applyFilter())
+  },
+
+  onItemAll() {
+    this.setData({ activeItem: '', selected: null }, () => this.applyFilter())
+  },
+
+  onItem(e) {
+    const item = e.currentTarget.dataset.item
+    this.setData({
+      activeItem: this.data.activeItem === item ? '' : item,
+      selected: null
+    }, () => this.applyFilter())
+  },
+
+  selectListing(id) {
+    const selected = this.data.filtered.find((item) => Number(item.id) === Number(id))
     if (!selected) return
     this.setData({
       selected,
       showList: false,
-      latitude: selected.latitude,
-      longitude: selected.longitude,
-      markers: this.data.filtered.map((item) => this.toMarker(item, Number(item.id) === id))
+      markers: this.data.filtered.map((item) => this.toMarker(item, Number(item.id) === Number(id)))
     })
   },
 
-  onMapTap() {
-    if (!this.data.selected) return
-    this.setData({
-      selected: null,
-      markers: this.data.filtered.map((item) => this.toMarker(item, false))
-    })
+  onMarkerTap(e) {
+    const id = e.markerId || (e.detail && e.detail.markerId)
+    this.selectListing(id)
+  },
+
+  onCalloutTap(e) {
+    const id = e.markerId || (e.detail && e.detail.markerId)
+    this.selectListing(id)
   },
 
   onLocate() {
+    this.setData({ selected: null })
     this.loadLocationThenListings()
   },
 
   toggleList() {
-    this.setData({ showList: !this.data.showList, selected: null })
+    this.setData({ showList: !this.data.showList, selected: null }, () => {
+      if (!this.data.showList) this.applyFilter()
+    })
   },
 
   onPublish() {
@@ -132,7 +210,9 @@ Page({
   },
 
   onOpenDetail(e) {
-    const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: `/pages/detail/index?id=${id}` })
+    const id = e.currentTarget.dataset.listingId
+    const listing = this.data.filtered.find((item) => String(item.id) === String(id))
+      || this.data.selected
+    openDetail(listing)
   }
 })

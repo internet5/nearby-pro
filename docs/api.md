@@ -69,12 +69,13 @@ const requestParams = {
   longitude: 104.065735,   // 必需
   radius: 3000,            // 可选，米，默认 3000，最大 10000
   categoryId: 2,           // 可选，不传或 0 表示全部分类
+  tag: '水电维修',          // 可选，大类下的技能标签
   keyword: ''              // 可选，标题模糊搜
 }
 ```
 
 查询条件：`status = 1 AND expire_at > now() AND ST_DWithin(geom, 点, radius)`。  
-按距离升序，最多返回 200 条。地图点多时前端用微信 map 的点聚合。
+按距离升序，最多返回 200 条。点不多时地图气泡直接展示技能名，先不要开点聚合。
 
 ```json
 {
@@ -89,6 +90,7 @@ const requestParams = {
         "categoryId": 2,
         "categoryCode": "repair",
         "categoryName": "维修安装",
+        "tags": ["水电维修", "管道疏通"],
         "title": "上门水电维修",
         "latitude": 30.65912,
         "longitude": 104.06801,
@@ -121,6 +123,7 @@ const requestParams = {
     "categoryId": 2,
     "categoryCode": "repair",
     "categoryName": "维修安装",
+    "tags": ["水电维修", "管道疏通"],
     "title": "上门水电维修",
     "description": "电路跳闸、水管漏水，一般当天能上门。",
     "photoUrls": [],
@@ -149,6 +152,7 @@ const requestParams = {
 ```javascript
 const requestData = {
   categoryId: 2,
+  tags: ['水电维修', '管道疏通'],
   title: '上门水电维修',
   description: '电路跳闸、水管漏水，一般当天能上门。',
   photoUrls: [],

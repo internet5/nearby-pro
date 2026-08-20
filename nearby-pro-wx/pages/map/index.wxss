@@ -9,9 +9,22 @@
 .chips {
   flex-shrink: 0;
   white-space: nowrap;
-  padding: 16rpx 24rpx 12rpx;
   width: 100%;
   box-sizing: border-box;
+}
+
+.filters {
+  flex-shrink: 0;
+  padding: 16rpx 24rpx 12rpx;
+}
+
+.chips-sub {
+  margin-top: 12rpx;
+}
+
+.chip-sm {
+  padding: 8rpx 20rpx;
+  font-size: 24rpx;
 }
 
 .chip {

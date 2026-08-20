@@ -1,11 +1,23 @@
-const { CATEGORIES } = require('../../utils/categories')
+const { CATEGORIES, tagList, itemsOfTags } = require('../../utils/categories')
 const { addListing, getMine } = require('../../utils/store')
+
+function toChipItems(options, selected) {
+  return options.map((name) => ({
+    name,
+    on: selected.indexOf(name) >= 0
+  }))
+}
 
 Page({
   data: {
     categories: CATEGORIES.filter((item) => item.id !== 0),
+    tagItems: toChipItems(tagList(2), []),
+    skillItems: [],
+    showSkills: false,
     form: {
       categoryId: 2,
+      tags: [],
+      items: [],
       title: '',
       description: '',
       latitude: 0,
@@ -16,8 +28,64 @@ Page({
     }
   },
 
+  syncSkills(categoryId, tags, items) {
+    const options = itemsOfTags(categoryId, tags)
+    const kept = items.filter((name) => options.indexOf(name) >= 0)
+    return {
+      skillItems: toChipItems(options, kept),
+      showSkills: options.length > 0,
+      items: kept
+    }
+  },
+
   onCategory(e) {
-    this.setData({ 'form.categoryId': Number(e.currentTarget.dataset.id) })
+    const categoryId = Number(e.currentTarget.dataset.id)
+    this.setData({
+      tagItems: toChipItems(tagList(categoryId), []),
+      skillItems: [],
+      showSkills: false,
+      'form.categoryId': categoryId,
+      'form.tags': [],
+      'form.items': []
+    })
+  },
+
+  onTag(e) {
+    const tag = e.currentTarget.dataset.tag
+    const tags = this.data.form.tags.slice()
+    const index = tags.indexOf(tag)
+    if (index >= 0) {
+      tags.splice(index, 1)
+    } else {
+      if (tags.length >= 3) {
+        wx.showToast({ title: '工种最多选 3 个', icon: 'none' })
+        return
+      }
+      tags.push(tag)
+    }
+    const skills = this.syncSkills(this.data.form.categoryId, tags, this.data.form.items)
+    this.setData({
+      tagItems: toChipItems(tagList(this.data.form.categoryId), tags),
+      skillItems: skills.skillItems,
+      showSkills: skills.showSkills,
+      'form.tags': tags,
+      'form.items': skills.items
+    })
+  },
+
+  onSkill(e) {
+    const name = e.currentTarget.dataset.name
+    const items = this.data.form.items.slice()
+    const index = items.indexOf(name)
+    if (index >= 0) {
+      items.splice(index, 1)
+    } else {
+      items.push(name)
+    }
+    this.setData({
+      skillItems: toChipItems(itemsOfTags(this.data.form.categoryId, this.data.form.tags), items),
+      'form.items': items
+    })
   },
 
   onTitle(e) {
@@ -57,6 +125,14 @@ Page({
     const contactValue = (form.contactValue || '').trim()
     if (!form.categoryId) {
       wx.showToast({ title: '请选择分类', icon: 'none' })
+      return
+    }
+    if (!form.tags.length) {
+      wx.showToast({ title: '请至少选一个工种', icon: 'none' })
+      return
+    }
+    if (this.data.showSkills && !form.items.length) {
+      wx.showToast({ title: '请勾选你会做的具体项目', icon: 'none' })
       return
     }
     if (title.length < 2) {

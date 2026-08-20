@@ -1,4 +1,5 @@
 const { getMine, offlineListing } = require('../../utils/store')
+const { openDetail } = require('../../utils/listings')
 
 const STATUS_TEXT = {
   1: '上架中',
@@ -21,11 +22,13 @@ Page({
   },
 
   onOpen(e) {
-    wx.navigateTo({ url: `/pages/detail/index?id=${e.currentTarget.dataset.id}` })
+    const id = e.currentTarget.dataset.listingId
+    const listing = this.data.list.find((item) => String(item.id) === String(id))
+    openDetail(listing)
   },
 
   onOffline(e) {
-    offlineListing(Number(e.currentTarget.dataset.id))
+    offlineListing(Number(e.currentTarget.dataset.listingId))
     this.onShow()
   },
 

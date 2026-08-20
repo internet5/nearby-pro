@@ -1,13 +1,41 @@
 <view class="page">
-  <scroll-view class="chips" scroll-x enhanced show-scrollbar="{{false}}">
-    <view
-      wx:for="{{categories}}"
-      wx:key="id"
-      class="chip {{categoryId === item.id ? 'chip-on' : ''}}"
-      data-id="{{item.id}}"
-      bindtap="onCategory"
-    >{{item.name}}</view>
-  </scroll-view>
+  <view class="filters">
+    <scroll-view class="chips" scroll-x show-scrollbar="{{false}}">
+      <view
+        wx:for="{{categories}}"
+        wx:key="id"
+        class="chip {{categoryId === item.id ? 'chip-on' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="onCategory"
+      >{{item.name}}</view>
+    </scroll-view>
+    <scroll-view wx:if="{{tagOptions.length}}" class="chips chips-sub" scroll-x show-scrollbar="{{false}}">
+      <view
+        class="chip chip-sm {{!activeTag ? 'chip-on' : ''}}"
+        bindtap="onTagAll"
+      >不限</view>
+      <view
+        wx:for="{{tagOptions}}"
+        wx:key="*this"
+        class="chip chip-sm {{activeTag === item ? 'chip-on' : ''}}"
+        data-tag="{{item}}"
+        bindtap="onTag"
+      >{{item}}</view>
+    </scroll-view>
+    <scroll-view wx:if="{{itemOptions.length}}" class="chips chips-sub" scroll-x show-scrollbar="{{false}}">
+      <view
+        class="chip chip-sm {{!activeItem ? 'chip-on' : ''}}"
+        bindtap="onItemAll"
+      >全部会做</view>
+      <view
+        wx:for="{{itemOptions}}"
+        wx:key="*this"
+        class="chip chip-sm {{activeItem === item ? 'chip-on' : ''}}"
+        data-item="{{item}}"
+        bindtap="onItem"
+      >{{item}}</view>
+    </scroll-view>
+  </view>
 
   <view class="map-wrap">
     <map
@@ -19,9 +47,8 @@
       markers="{{markers}}"
       show-location
       enable-poi="{{false}}"
-      enable-clustering
       bindmarkertap="onMarkerTap"
-      bindtap="onMapTap"
+      bindcallouttap="onCalloutTap"
     />
   </view>
 
@@ -39,29 +66,29 @@
           wx:for="{{filtered}}"
           wx:key="id"
           class="row"
-          data-id="{{item.id}}"
+          data-listing-id="{{item.id}}"
           bindtap="onOpenDetail"
         >
           <view class="row-pin {{item.categoryCode}}"></view>
           <view class="row-main">
             <view class="row-title">{{item.title}}</view>
-            <view class="row-meta">{{item.nickname}} · {{item.categoryName}} · {{item.distanceText}}</view>
+            <view class="row-meta">{{item.nickname}} · {{item.itemText || item.tagText || item.categoryName}} · {{item.distanceText}}</view>
           </view>
         </view>
       </scroll-view>
-      <view class="empty" wx:else>这一带还没有人发布，换个分类或稍后过来看</view>
+      <view class="empty" wx:else>{{emptyText}}</view>
     </block>
 
     <block wx:else>
-      <view wx:if="{{selected}}" class="card" data-id="{{selected.id}}" bindtap="onOpenDetail">
-        <view class="card-kicker">{{selected.categoryName}} · {{selected.distanceText}}</view>
+      <view wx:if="{{selected}}" class="card" data-listing-id="{{selected.id}}" bindtap="onOpenDetail">
+        <view class="card-kicker">{{selected.itemText || selected.tagText || selected.categoryName}} · {{selected.distanceText}}</view>
         <view class="card-title">{{selected.title}}</view>
         <view class="card-sub">{{selected.nickname}} · {{selected.address}}</view>
-        <view class="card-go">查看联系方式</view>
+        <view class="card-go">查看详情和联系方式</view>
       </view>
       <view wx:else class="hint">
         <view class="hint-num">附近 {{filtered.length}} 人在接活</view>
-        <view class="hint-sub">点地图上的标记，或切到列表浏览</view>
+        <view class="hint-sub">{{filtered.length ? '点地图上的名字看详情' : emptyText}}</view>
       </view>
     </block>
   </view>

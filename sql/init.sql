@@ -74,6 +74,8 @@ CREATE TABLE IF NOT EXISTS listings (
     title          VARCHAR(40)      NOT NULL,
     description    VARCHAR(500)     NOT NULL DEFAULT '',
     photo_urls     JSONB            NOT NULL DEFAULT '[]'::jsonb,
+    tags           JSONB            NOT NULL DEFAULT '[]'::jsonb,
+    items          JSONB            NOT NULL DEFAULT '[]'::jsonb,
     contact_type   VARCHAR(16)      NOT NULL,
     contact_value  VARCHAR(64)      NOT NULL,
     latitude       DOUBLE PRECISION NOT NULL,
@@ -125,4 +127,6 @@ COMMENT ON TABLE categories IS '技能分类，预置数据';
 COMMENT ON TABLE listings IS '地图上的技能发布点';
 COMMENT ON TABLE reports IS '用户举报';
 COMMENT ON COLUMN listings.status IS '1上架 2主动下架 3过期 4封禁';
+COMMENT ON COLUMN listings.tags IS '工种标签，如 ["家电维修"]';
+COMMENT ON COLUMN listings.items IS '具体会做的项目，如 ["电磁炉","油烟机"]，只勾会的';
 COMMENT ON COLUMN listings.contact_type IS 'wechat 微信号 / phone 手机号';

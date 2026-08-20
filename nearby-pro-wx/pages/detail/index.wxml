@@ -1,7 +1,13 @@
 <view class="page" wx:if="{{item}}">
-  <view class="kicker">{{item.categoryName}}</view>
+  <view class="kicker">{{item.categoryName}}{{item.tagText ? ' · ' + item.tagText : ''}}</view>
   <view class="title">{{item.title}}</view>
   <view class="meta">{{item.nickname}} · {{item.distanceText || item.address}}</view>
+  <view class="block" wx:if="{{item.items && item.items.length}}">
+    <view class="block-label">会做这些</view>
+    <view class="tags">
+      <view class="tag tag-on" wx:for="{{item.items}}" wx:for-item="skill" wx:key="*this">{{skill}}</view>
+    </view>
+  </view>
 
   <view class="block">
     <view class="block-label">怎么找我</view>
@@ -24,7 +30,12 @@
   </view>
 
   <view class="footer">
-    <text class="link" bindtap="onReport">举报</text>
-    <text wx:if="{{item.isOwner}}" class="link" bindtap="onOffline">下架这条发布</text>
+    <view class="link" bindtap="onReport">举报</view>
+    <view wx:if="{{item.isOwner}}" class="link" bindtap="onOffline">下架这条发布</view>
   </view>
+</view>
+
+<view class="page empty-page" wx:else>
+  <view class="empty-title">找不到这条发布</view>
+  <view class="empty-sub">可能已经下架，返回地图再选一次。</view>
 </view>

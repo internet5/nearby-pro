@@ -24,6 +24,26 @@
   color: #78716C;
 }
 
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+
+.tag {
+  padding: 8rpx 18rpx;
+  background: #EDE8DE;
+  color: #44403C;
+  font-size: 22rpx;
+  border-radius: 999rpx;
+}
+
+.tag-on {
+  background: #C45C26;
+  color: #F4EFE6;
+}
+
 .block {
   margin-top: 48rpx;
 }
@@ -81,4 +101,16 @@
 .link {
   font-size: 24rpx;
   color: #A8A29E;
+}
+
+.empty-title {
+  margin-top: 120rpx;
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.empty-sub {
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  color: #78716C;
 }

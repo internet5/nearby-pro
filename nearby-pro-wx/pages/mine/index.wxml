@@ -12,15 +12,15 @@
     wx:for="{{list}}"
     wx:key="id"
     class="card"
-    data-id="{{item.id}}"
+    data-listing-id="{{item.id}}"
     bindtap="onOpen"
   >
     <view class="card-top">
       <view class="name">{{item.title}}</view>
       <view class="status status-{{item.status}}">{{item.statusText}}</view>
     </view>
-    <view class="sub">{{item.categoryName}} · {{item.address}}</view>
-    <view class="off" wx:if="{{item.status === 1}}" data-id="{{item.id}}" catchtap="onOffline">下架</view>
+    <view class="sub">{{item.categoryName}}{{item.itemText ? ' · ' + item.itemText : (item.tagText ? ' · ' + item.tagText : '')}} · {{item.address}}</view>
+    <view class="off" wx:if="{{item.status === 1}}" data-listing-id="{{item.id}}" catchtap="onOffline">下架</view>
   </view>
 
   <view class="publish" bindtap="onPublish">发布技能</view>
