@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 390px; height: 844px; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; position: relative; overflow: hidden; background: #F2E9D8; }
+
+  /* ---- 地图 ---- */
+  .map { position: absolute; inset: 0; }
+
+  /* ---- 顶部筛选 ---- */
+  .filters { position: absolute; top: 16px; left: 0; right: 0; z-index: 10; padding: 0 16px; }
+  .chips { display: flex; gap: 8px; }
+  .chip { flex-shrink: 0; padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 500; color: #3D3831; background: rgba(255,253,248,.92); box-shadow: 0 2px 10px rgba(61,46,27,.10); border: .5px solid rgba(61,46,27,.06); backdrop-filter: blur(10px); }
+  .chip.on { background: #E4552C; color: #fff; font-weight: 600; box-shadow: 0 4px 14px rgba(228,85,44,.35); border-color: transparent; }
+  .chips-sub { margin-top: 10px; }
+  .chip.sm { padding: 6px 14px; font-size: 11px; }
+
+  /* ---- 定位按钮 ---- */
+  .fab { position: absolute; right: 18px; bottom: 250px; width: 46px; height: 46px; border-radius: 50%; background: rgba(255,253,248,.96); box-shadow: 0 6px 20px rgba(61,46,27,.18); display: flex; align-items: center; justify-content: center; z-index: 10; }
+
+  /* ---- 底部面板 ---- */
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; background: #FAF6EF; border-radius: 28px 28px 0 0; padding: 10px 20px calc(18px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -8px 40px rgba(61,46,27,.12); }
+  .handle { width: 36px; height: 4px; border-radius: 99px; background: #D8CFC0; margin: 4px auto 14px; }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 14px; }
+  .tool { flex: 1; height: 40px; border-radius: 999px; background: #fff; box-shadow: 0 2px 10px rgba(61,46,27,.07); border: .5px solid #E8E1D4; font-size: 13px; font-weight: 600; color: #3D3831; display: flex; align-items: center; justify-content: center; }
+  .tool.primary { background: linear-gradient(135deg, #E4552C, #C7431E); color: #fff; border: none; box-shadow: 0 6px 18px rgba(228,85,44,.32); }
+
+  /* ---- 选中卡片 ---- */
+  .card { background: #fff; border-radius: 18px; padding: 18px; box-shadow: 0 6px 24px rgba(61,46,27,.07); }
+  .kicker { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #E4552C; font-weight: 600; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #F97316; }
+  .title { margin-top: 6px; font-size: 21px; font-weight: 700; color: #231F1A; line-height: 1.3; }
+  .sub { margin-top: 6px; font-size: 12px; color: #8B8272; }
+  .cta { margin-top: 14px; height: 42px; border-radius: 999px; background: linear-gradient(135deg, #E4552C, #C7431E); color: #fff; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(228,85,44,.28); }
+
+  /* ---- 气泡 ---- */
+  .callout { position: absolute; z-index: 15; background: #E4552C; color: #fff; padding: 7px 12px; border-radius: 10px; font-size: 12px; font-weight: 600; box-shadow: 0 6px 16px rgba(228,85,44,.4); }
+  .callout::after { content: ""; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%) rotate(45deg); width: 10px; height: 10px; background: #E4552C; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- 地图 -->
+<svg class="map" viewBox="0 0 390 844" xmlns="http://www.w3.org/2000/svg">
+  <rect width="390" height="844" fill="#F2E9D8"/>
+  <!-- 街区 -->
+  <rect x="20" y="80" width="150" height="120" rx="10" fill="#EDE1CB"/>
+  <rect x="190" y="60" width="180" height="100" rx="10" fill="#EFE6D4"/>
+  <rect x="30" y="230" width="120" height="150" rx="10" fill="#EBDFC6"/>
+  <rect x="170" y="190" width="200" height="130" rx="10" fill="#E8DCC2"/>
+  <rect x="20" y="410" width="170" height="140" rx="10" fill="#EDE2CC"/>
+  <rect x="210" y="350" width="160" height="160" rx="10" fill="#E9DDC4"/>
+  <rect x="40" y="580" width="140" height="120" rx="10" fill="#EBE0C9"/>
+  <rect x="200" y="540" width="170" height="130" rx="10" fill="#E6DABF"/>
+  <!-- 公园 -->
+  <rect x="230" y="230" width="120" height="90" rx="14" fill="#C9D9B8"/>
+  <circle cx="290" cy="275" r="24" fill="#B8CCa4" opacity=".7"/>
+  <!-- 水系 -->
+  <path d="M 0 700 Q 100 670 180 710 T 390 690 L 390 844 L 0 844 Z" fill="#BFDCD4" opacity=".85"/>
+  <!-- 道路 -->
+  <line x1="0" y1="210" x2="390" y2="195" stroke="#FDF9F0" stroke-width="14"/>
+  <line x1="0" y1="400" x2="390" y2="385" stroke="#FDF9F0" stroke-width="18"/>
+  <line x1="0" y1="560" x2="390" y2="545" stroke="#FDF9F0" stroke-width="12"/>
+  <line x1="80" y1="0" x2="65" y2="844" stroke="#FDF9F0" stroke-width="12"/>
+  <line x1="185" y1="0" x2="175" y2="844" stroke="#FDF9F0" stroke-width="16"/>
+  <line x1="300" y1="0" x2="285" y2="844" stroke="#FDF9F0" stroke-width="10"/>
+  <!-- 小路 -->
+  <line x1="0" y1="310" x2="390" y2="300" stroke="#F7F0E2" stroke-width="6"/>
+  <line x1="0" y1="490" x2="390" y2="480" stroke="#F7F0E2" stroke-width="6"/>
+  <line x1="130" y1="0" x2="120" y2="844" stroke="#F7F0E2" stroke-width="6"/>
+  <line x1="245" y1="0" x2="235" y2="844" stroke="#F7F0E2" stroke-width="6"/>
+</svg>
+
+<!-- 顶部筛选 -->
+<div class="filters">
+  <div class="chips">
+    <div class="chip on">全部</div>
+    <div class="chip">家政保洁</div>
+    <div class="chip">维修安装</div>
+    <div class="chip">家教陪练</div>
+    <div class="chip">摄影跟拍</div>
+  </div>
+  <div class="chips chips-sub">
+    <div class="chip sm on">水电维修</div>
+    <div class="chip sm">家电维修</div>
+    <div class="chip sm">家具安装</div>
+    <div class="chip sm">管道疏通</div>
+  </div>
+</div>
+
+<!-- 地图标记 -->
+<svg style="position:absolute;z-index:12;left:60px;top:300px" width="34" height="44" viewBox="0 0 34 44"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.7 17 27 17 27s17-14.3 17-27C34 7.6 26.4 0 17 0z" fill="#F97316"/><circle cx="17" cy="17" r="8" fill="#fff"/><circle cx="17" cy="17" r="4.5" fill="#F97316"/></svg>
+<svg style="position:absolute;z-index:12;left:220px;top:160px" width="30" height="39" viewBox="0 0 34 44"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.7 17 27 17 27s17-14.3 17-27C34 7.6 26.4 0 17 0z" fill="#14B8A6"/><circle cx="17" cy="17" r="8" fill="#fff"/><circle cx="17" cy="17" r="4.5" fill="#14B8A6"/></svg>
+<svg style="position:absolute;z-index:12;left:130px;top:480px" width="30" height="39" viewBox="0 0 34 44"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.7 17 27 17 27s17-14.3 17-27C34 7.6 26.4 0 17 0z" fill="#3B82F6"/><circle cx="17" cy="17" r="8" fill="#fff"/><circle cx="17" cy="17" r="4.5" fill="#3B82F6"/></svg>
+<svg style="position:absolute;z-index:12;left:285px;top:430px" width="30" height="39" viewBox="0 0 34 44"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.7 17 27 17 27s17-14.3 17-27C34 7.6 26.4 0 17 0z" fill="#EAB308"/><circle cx="17" cy="17" r="8" fill="#fff"/><circle cx="17" cy="17" r="4.5" fill="#EAB308"/></svg>
+<svg style="position:absolute;z-index:12;left:100px;top:530px" width="30" height="39" viewBox="0 0 34 44"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.7 17 27 17 27s17-14.3 17-27C34 7.6 26.4 0 17 0z" fill="#22C55E"/><circle cx="17" cy="17" r="8" fill="#fff"/><circle cx="17" cy="17" r="4.5" fill="#22C55E"/></svg>
+
+<!-- 选中气泡 -->
+<div class="callout" style="left:44px;top:252px;">上门水电维修 · 350m</div>
+
+<!-- 定位按钮 -->
+<div class="fab">
+  <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="#E4552C" stroke-width="2.2"/><circle cx="11" cy="11" r="2.6" fill="#E4552C"/><line x1="11" y1="0" x2="11" y2="4" stroke="#E4552C" stroke-width="2"/><line x1="11" y1="18" x2="11" y2="22" stroke="#E4552C" stroke-width="2"/><line x1="0" y1="11" x2="4" y2="11" stroke="#E4552C" stroke-width="2"/><line x1="18" y1="11" x2="22" y2="11" stroke="#E4552C" stroke-width="2"/></svg>
+</div>
+
+<!-- 底部面板 -->
+<div class="sheet">
+  <div class="handle"></div>
+  <div class="toolbar">
+    <div class="tool">看列表</div>
+    <div class="tool primary">发布技能</div>
+  </div>
+  <div class="card">
+    <div class="kicker"><div class="dot"></div>水电维修 · 350m</div>
+    <div class="title">上门水电维修</div>
+    <div class="sub">张师傅 · 当前位置附近</div>
+    <div class="cta">查看详情和联系方式</div>
+  </div>
+</div>
+
+</body>
+</html>

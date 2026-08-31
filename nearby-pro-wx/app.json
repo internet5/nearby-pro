@@ -7,16 +7,16 @@
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#F4EFE6",
+    "navigationBarBackgroundColor": "#F3F6EE",
     "navigationBarTitleText": "附近职人",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#F4EFE6"
+    "backgroundColor": "#F3F6EE"
   },
   "tabBar": {
-    "color": "#8A8178",
-    "selectedColor": "#C45C26",
-    "backgroundColor": "#F4EFE6",
-    "borderStyle": "white",
+    "color": "#A8B4A9",
+    "selectedColor": "#3E6B4F",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
     "list": [
       {
         "pagePath": "pages/map/index",

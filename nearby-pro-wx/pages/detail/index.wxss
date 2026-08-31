@@ -1,19 +1,43 @@
 .page {
   min-height: 100vh;
-  padding: 48rpx 40rpx calc(48rpx + env(safe-area-inset-bottom));
-  background: #F4EFE6;
+  padding: 32rpx 32rpx calc(200rpx + env(safe-area-inset-bottom));
+  background: var(--bg);
   box-sizing: border-box;
 }
 
-.kicker {
+.hero {
+  padding: 16rpx 8rpx 32rpx;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 10rpx 24rpx;
+  background: var(--primary-soft);
+  border-radius: 999rpx;
   font-size: 24rpx;
-  color: #C45C26;
+  color: var(--primary-deep);
   font-weight: 600;
 }
 
+.hero-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+
+.hero-dot.clean { background: #14B8A6; }
+.hero-dot.repair { background: #F97316; }
+.hero-dot.tutor { background: #3B82F6; }
+.hero-dot.photo { background: #EAB308; }
+.hero-dot.run { background: #22C55E; }
+.hero-dot.other { background: #8B5CF6; }
+
 .title {
-  margin-top: 12rpx;
-  font-size: 48rpx;
+  margin-top: 20rpx;
+  font-size: 52rpx;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -21,38 +45,39 @@
 .meta {
   margin-top: 16rpx;
   font-size: 26rpx;
-  color: #78716C;
+  color: var(--ink-2);
+}
+
+.card {
+  margin-top: 24rpx;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 32rpx;
+  box-shadow: var(--shadow-card);
+}
+
+.block-label {
+  font-size: 24rpx;
+  color: var(--ink-3);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-bottom: 16rpx;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
-  margin-top: 12rpx;
+  gap: 14rpx;
 }
 
 .tag {
-  padding: 8rpx 18rpx;
-  background: #EDE8DE;
-  color: #44403C;
-  font-size: 22rpx;
+  padding: 10rpx 24rpx;
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+  font-size: 24rpx;
+  font-weight: 500;
   border-radius: 999rpx;
-}
-
-.tag-on {
-  background: #C45C26;
-  color: #F4EFE6;
-}
-
-.block {
-  margin-top: 48rpx;
-}
-
-.block-label {
-  font-size: 22rpx;
-  color: #A8A29E;
-  letter-spacing: 0.08em;
-  margin-bottom: 12rpx;
+  border: 1rpx solid var(--primary-line);
 }
 
 .desc {
@@ -60,51 +85,87 @@
   line-height: 1.7;
 }
 
+.card-contact {
+  background: linear-gradient(135deg, #FDF3EC, #FBE7D8);
+}
+
 .contact {
-  font-size: 40rpx;
+  font-size: 42rpx;
   font-weight: 700;
   letter-spacing: 0.04em;
-}
-
-.actions {
-  margin-top: 64rpx;
-  display: flex;
-  gap: 16rpx;
-}
-
-.btn {
-  flex: 1;
-  height: 88rpx;
-  line-height: 88rpx;
-  text-align: center;
-  border-radius: 16rpx;
-  font-size: 28rpx;
-  font-weight: 600;
-}
-
-.btn-dark {
-  background: #C45C26;
-  color: #F4EFE6;
-}
-
-.btn-ghost {
-  background: #EDE8DE;
-  color: #1C1917;
+  color: var(--primary-deep);
 }
 
 .footer {
   margin-top: 48rpx;
   display: flex;
-  gap: 40rpx;
+  justify-content: center;
+  gap: 48rpx;
 }
 
 .link {
   font-size: 24rpx;
-  color: #A8A29E;
+  color: var(--ink-3);
+}
+
+.actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: rgba(246, 244, 239, 0.96);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-top: 1rpx solid var(--line);
+  box-sizing: border-box;
+}
+
+.btn {
+  flex: 1;
+  height: 92rpx;
+  line-height: 92rpx;
+  text-align: center;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-deep));
+  color: #FFFFFF;
+  box-shadow: 0 12rpx 28rpx rgba(228, 95, 43, 0.32);
+}
+
+.btn-ghost {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1rpx solid var(--line);
+  box-shadow: var(--shadow-card);
+}
+
+.empty-page {
+  text-align: center;
+}
+
+.empty-icon {
+  margin-top: 160rpx;
+  width: 120rpx;
+  height: 120rpx;
+  line-height: 120rpx;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  color: var(--ink-3);
+  font-size: 56rpx;
+  font-weight: 700;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .empty-title {
-  margin-top: 120rpx;
+  margin-top: 32rpx;
   font-size: 36rpx;
   font-weight: 700;
 }
@@ -112,5 +173,5 @@
 .empty-sub {
   margin-top: 16rpx;
   font-size: 26rpx;
-  color: #78716C;
+  color: var(--ink-2);
 }

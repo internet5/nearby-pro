@@ -1,6 +1,25 @@
 page {
-  background: #F4EFE6;
-  color: #1C1917;
+  --bg: #F3F6EE;
+  --surface: #FFFFFF;
+  --surface-soft: #F6F9F1;
+  --ink: #2F3A32;
+  --ink-2: #7C8A7E;
+  --ink-3: #A8B4A9;
+  --line: #DDE8D6;
+  --primary: #3E6B4F;
+  --primary-deep: #2F5240;
+  --primary-soft: #E9EFE2;
+  --primary-line: #DDE8D6;
+  --success: #2F7D4F;
+  --radius-lg: 52rpx;
+  --radius-md: 36rpx;
+  --radius-sm: 16rpx;
+  --shadow-card: 0 12rpx 40rpx rgba(26, 23, 20, 0.06);
+  --shadow-float: 0 10rpx 36rpx rgba(26, 23, 20, 0.14);
+
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 28rpx;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
 

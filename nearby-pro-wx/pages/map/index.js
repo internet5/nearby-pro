@@ -116,15 +116,15 @@ Page({
       zIndex: active ? 9 : 1,
       callout: {
         content: active ? `${item.title}  ${item.distanceText}` : label,
-        color: active ? '#F4EFE6' : '#1C1917',
+        color: active ? '#FFFFFF' : '#2F3A32',
         fontSize: active ? 13 : 12,
         borderRadius: 8,
-        bgColor: active ? '#C45C26' : '#FFFDF8',
+        bgColor: active ? '#3E6B4F' : '#FFFFFF',
         padding: 8,
         display: 'ALWAYS',
         textAlign: 'center',
         borderWidth: active ? 0 : 1,
-        borderColor: '#E7E5E4'
+        borderColor: '#DDE8D6'
       }
     }
   },

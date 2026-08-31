@@ -1,76 +1,103 @@
 <view class="page">
-  <view class="label">技能分类</view>
-  <view class="chips">
-    <view
-      wx:for="{{categories}}"
-      wx:key="id"
-      class="chip {{form.categoryId === item.id ? 'chip-on' : ''}}"
-      data-id="{{item.id}}"
-      bindtap="onCategory"
-    >{{item.name}}</view>
-  </view>
+  <view class="sec">
+    <view class="sec-head">
+      <view class="sec-bar"></view>
+      <view class="sec-title">选择技能</view>
+    </view>
 
-  <view class="label">工种（最多 3 个）</view>
-  <view class="chips">
-    <view
-      wx:for="{{tagItems}}"
-      wx:key="name"
-      class="chip {{item.on ? 'chip-on' : ''}}"
-      data-tag="{{item.name}}"
-      bindtap="onTag"
-    >{{item.name}}</view>
-  </view>
-
-  <block wx:if="{{showSkills}}">
-    <view class="label">具体会做哪些（只勾你会的）</view>
+    <view class="label">技能分类</view>
     <view class="chips">
       <view
-        wx:for="{{skillItems}}"
-        wx:key="name"
-        class="chip {{item.on ? 'chip-on' : ''}}"
-        data-name="{{item.name}}"
-        bindtap="onSkill"
+        wx:for="{{categories}}"
+        wx:key="id"
+        class="chip {{form.categoryId === item.id ? 'chip-on' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="onCategory"
       >{{item.name}}</view>
     </view>
-    <view class="hint">勾了「家电维修」不等于什么电器都会。不会修电磁炉就不要勾，避免对方白跑一趟。</view>
-  </block>
 
-  <view class="label">一句话介绍</view>
-  <input
-    class="input"
-    maxlength="40"
-    placeholder="例如：上门水电维修"
-    value="{{form.title}}"
-    bindinput="onTitle"
-  />
+    <view class="label">工种（最多 3 个）</view>
+    <view class="chips">
+      <view
+        wx:for="{{tagItems}}"
+        wx:key="name"
+        class="chip {{item.on ? 'chip-on' : ''}}"
+        data-tag="{{item.name}}"
+        bindtap="onTag"
+      >{{item.name}}</view>
+    </view>
 
-  <view class="label">补充说明</view>
-  <textarea
-    class="area"
-    maxlength="500"
-    placeholder="服务范围、上门时间、收费方式，写清楚需求方才找得到你"
-    value="{{form.description}}"
-    bindinput="onDesc"
-  />
-
-  <view class="label">服务位置</view>
-  <view class="loc" bindtap="onChooseLocation">
-    <view wx:if="{{form.address}}" class="loc-on">{{form.address}}</view>
-    <view wx:else class="loc-off">在地图上选一个点</view>
+    <block wx:if="{{showSkills}}">
+      <view class="label">具体会做哪些（只勾你会的）</view>
+      <view class="chips">
+        <view
+          wx:for="{{skillItems}}"
+          wx:key="name"
+          class="chip {{item.on ? 'chip-on' : ''}}"
+          data-name="{{item.name}}"
+          bindtap="onSkill"
+        >{{item.name}}</view>
+      </view>
+      <view class="hint">勾了「家电维修」不等于什么电器都会。不会修电磁炉就不要勾，避免对方白跑一趟。</view>
+    </block>
   </view>
 
-  <view class="label">联系方式</view>
-  <view class="seg">
-    <view class="seg-item {{form.contactType === 'wechat' ? 'seg-on' : ''}}" data-type="wechat" bindtap="onContactType">微信号</view>
-    <view class="seg-item {{form.contactType === 'phone' ? 'seg-on' : ''}}" data-type="phone" bindtap="onContactType">手机号</view>
+  <view class="sec">
+    <view class="sec-head">
+      <view class="sec-bar"></view>
+      <view class="sec-title">介绍自己</view>
+    </view>
+
+    <view class="label">一句话介绍</view>
+    <input
+      class="input"
+      maxlength="40"
+      placeholder="例如：上门水电维修"
+      value="{{form.title}}"
+      bindinput="onTitle"
+    />
+
+    <view class="label">补充说明</view>
+    <textarea
+      class="area"
+      maxlength="500"
+      placeholder="服务范围、上门时间、收费方式，写清楚需求方才找得到你"
+      value="{{form.description}}"
+      bindinput="onDesc"
+    />
   </view>
-  <input
-    class="input"
-    maxlength="32"
-    placeholder="{{form.contactType === 'wechat' ? '填写微信号' : '填写手机号'}}"
-    value="{{form.contactValue}}"
-    bindinput="onContactValue"
-  />
+
+  <view class="sec">
+    <view class="sec-head">
+      <view class="sec-bar"></view>
+      <view class="sec-title">服务位置</view>
+    </view>
+
+    <view class="loc" bindtap="onChooseLocation">
+      <view wx:if="{{form.address}}" class="loc-on">{{form.address}}</view>
+      <view wx:else class="loc-off">在地图上选一个点</view>
+      <view class="loc-arrow">›</view>
+    </view>
+  </view>
+
+  <view class="sec">
+    <view class="sec-head">
+      <view class="sec-bar"></view>
+      <view class="sec-title">联系方式</view>
+    </view>
+
+    <view class="seg">
+      <view class="seg-item {{form.contactType === 'wechat' ? 'seg-on' : ''}}" data-type="wechat" bindtap="onContactType">微信号</view>
+      <view class="seg-item {{form.contactType === 'phone' ? 'seg-on' : ''}}" data-type="phone" bindtap="onContactType">手机号</view>
+    </view>
+    <input
+      class="input input-gap"
+      maxlength="32"
+      placeholder="{{form.contactType === 'wechat' ? '填写微信号' : '填写手机号'}}"
+      value="{{form.contactValue}}"
+      bindinput="onContactValue"
+    />
+  </view>
 
   <view class="submit" bindtap="onSubmit">发布到地图</view>
   <view class="note">发布后保留 30 天，可在「我的」里提前下架。当前为本地演示，数据只存在这台手机。</view>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root {
+    --paper: #F4EDDD;
+    --paper-2: #ECE2CC;
+    --ink: #2E2A24;
+    --ink-soft: #6B6255;
+    --seal: #C03A2B;
+    --seal-deep: #A32E22;
+    --green: #3E5C4B;
+    --road: #FBF6EA;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 390px; height: 844px;
+    font-family: "Kaiti SC", "STKaiti", "KaiTi", "PingFang SC", "Microsoft YaHei", serif;
+    position: relative; overflow: hidden;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  /* 纸张纹理 */
+  body::before {
+    content: ""; position: absolute; inset: 0; z-index: 30; pointer-events: none;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(46,42,36,.035) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 70% 60%, rgba(46,42,36,.03) 0 1px, transparent 1.5px);
+    background-size: 26px 26px, 34px 34px;
+    mix-blend-mode: multiply;
+  }
+
+  .map { position: absolute; inset: 0; }
+
+  /* ---- 顶部：标题 + 印章 ---- */
+  .masthead {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 12;
+    padding: 18px 18px 0;
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .wordmark { line-height: 1; }
+  .wordmark .cn {
+    font-size: 30px; font-weight: 700; letter-spacing: .06em; color: var(--ink);
+    text-shadow: 1px 1px 0 rgba(255,255,255,.4);
+  }
+  .wordmark .sub {
+    margin-top: 6px; font-size: 11px; letter-spacing: .42em; color: var(--ink-soft);
+  }
+  .stamp {
+    width: 52px; height: 52px; border: 2.5px solid var(--seal); border-radius: 4px;
+    color: var(--seal); font-size: 12px; font-weight: 700; letter-spacing: .12em;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    transform: rotate(4deg); line-height: 1.35;
+    box-shadow: inset 0 0 0 3px var(--paper), inset 0 0 0 4px var(--seal);
+    background: rgba(194,58,46,.04);
+  }
+
+  /* ---- 分类：印章标签 ---- */
+  .filters { position: absolute; top: 96px; left: 0; right: 0; z-index: 11; padding: 0 18px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    flex-shrink: 0; padding: 7px 13px; font-size: 13px; font-weight: 700;
+    color: var(--ink-soft); background: rgba(255,252,244,.72);
+    border: 1.5px dashed #C9BC9E; border-radius: 3px; letter-spacing: .04em;
+    backdrop-filter: blur(4px);
+  }
+  .chip.on {
+    color: #FBF6EA; background: var(--seal); border: 1.5px solid var(--seal);
+    box-shadow: 2px 2px 0 rgba(46,42,36,.18);
+  }
+  .chips-sub { margin-top: 8px; }
+  .chip.sm { padding: 5px 11px; font-size: 11px; font-weight: 600; }
+
+  /* ---- 定位按钮 ---- */
+  .fab {
+    position: absolute; right: 18px; bottom: 268px; width: 46px; height: 46px;
+    border-radius: 50%; background: var(--paper-2); border: 2px solid var(--ink);
+    box-shadow: 3px 3px 0 rgba(46,42,36,.25);
+    display: flex; align-items: center; justify-content: center; z-index: 10;
+  }
+
+  /* ---- 底部面板 ---- */
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: var(--paper); border-top: 2px solid var(--ink);
+    border-radius: 14px 14px 0 0;
+    padding: 8px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -6px 24px rgba(46,42,36,.16);
+  }
+  .handle { width: 40px; height: 4px; border-radius: 99px; background: #C9BE9F; margin: 2px auto 12px; }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 12px; }
+  .tool {
+    flex: 1; height: 42px; border-radius: 6px; border: 2px solid var(--ink);
+    font-size: 13px; font-weight: 700; color: var(--ink); background: transparent;
+    display: flex; align-items: center; justify-content: center; letter-spacing: .1em;
+  }
+  .tool.primary {
+    background: var(--seal); color: #FBF3E6; border-color: var(--seal);
+    box-shadow: 3px 3px 0 rgba(163,46,31,.35);
+  }
+
+  .card {
+    background: #FBF6EA; border: 1.5px solid var(--ink); border-radius: 8px;
+    padding: 14px 16px; position: relative;
+    box-shadow: 3px 3px 0 rgba(46,42,36,.14);
+  }
+  .card::before {
+    content: "匠"; position: absolute; top: -9px; right: 12px;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--seal); color: #FBF3E6; font-size: 15px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--paper); box-shadow: 0 0 0 1.5px var(--seal);
+    transform: rotate(8deg);
+  }
+  .card-kicker {
+    display: flex; align-items: center; gap: 7px; font-size: 11px;
+    color: var(--seal); font-weight: 700; letter-spacing: .08em;
+  }
+  .card-kicker::before { content: "●"; font-size: 8px; }
+  .card-title { margin-top: 7px; font-size: 22px; font-weight: 700; color: var(--ink); line-height: 1.25; letter-spacing: .02em; }
+  .card-sub { margin-top: 5px; font-size: 12px; color: var(--ink-soft); }
+  .card-go {
+    margin-top: 12px; height: 38px; border-radius: 5px;
+    background: var(--ink); color: var(--paper);
+    font-size: 13px; font-weight: 700; letter-spacing: .08em;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* 选中气泡 */
+  .callout {
+    position: absolute; z-index: 15; background: var(--paper-2);
+    color: var(--ink); padding: 7px 12px; border-radius: 4px;
+    font-size: 12px; font-weight: 700; letter-spacing: .04em;
+    border: 1.5px dashed var(--ink); box-shadow: 2px 2px 0 rgba(46,42,36,.18);
+  }
+  .callout::after {
+    content: ""; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%) rotate(45deg);
+    width: 9px; height: 9px; background: var(--paper-2); border-right: 1.5px dashed var(--ink); border-bottom: 1.5px dashed var(--ink);
+  }
+</style>
+</head>
+<body>
+
+<!-- 手绘街区地图 -->
+<svg class="map" viewBox="0 0 390 844" xmlns="http://www.w3.org/2000/svg">
+  <rect width="390" height="844" fill="#F2E9D8"/>
+  <!-- 街区色块 -->
+  <rect x="20" y="70" width="150" height="120" rx="6" fill="#EADFC6"/>
+  <rect x="190" y="52" width="180" height="100" rx="6" fill="#EFE6D2"/>
+  <rect x="30" y="225" width="120" height="150" rx="6" fill="#E6DABE"/>
+  <rect x="170" y="185" width="200" height="130" rx="6" fill="#EAE0C8"/>
+  <rect x="20" y="405" width="170" height="140" rx="6" fill="#E9DEC6"/>
+  <rect x="210" y="345" width="160" height="160" rx="6" fill="#E5D9BC"/>
+  <rect x="40" y="575" width="140" height="120" rx="6" fill="#E8DDC4"/>
+  <rect x="200" y="535" width="170" height="130" rx="6" fill="#E3D7B8"/>
+  <!-- 公园 -->
+  <rect x="230" y="230" width="120" height="90" rx="10" fill="#C6D6B4"/>
+  <circle cx="290" cy="275" r="22" fill="#B4CAA0" opacity=".75"/>
+  <path d="M278 275 l8 8 l-4 10 l8 4 l-2 9 l10 2" stroke="#9DB58A" stroke-width="1.5" fill="none" opacity=".7"/>
+  <!-- 水系 -->
+  <path d="M 0 700 Q 100 668 180 708 T 390 688 L 390 844 L 0 844 Z" fill="#BED6CC" opacity=".85"/>
+  <!-- 道路 -->
+  <line x1="0" y1="205" x2="390" y2="192" stroke="#FBF6EA" stroke-width="14"/>
+  <line x1="0" y1="398" x2="390" y2="382" stroke="#FBF6EA" stroke-width="18"/>
+  <line x1="0" y1="555" x2="390" y2="542" stroke="#FBF6EA" stroke-width="12"/>
+  <line x1="80" y1="0" x2="66" y2="844" stroke="#FBF6EA" stroke-width="12"/>
+  <line x1="185" y1="0" x2="175" y2="844" stroke="#FBF6EA" stroke-width="16"/>
+  <line x1="300" y1="0" x2="288" y2="844" stroke="#FBF6EA" stroke-width="10"/>
+  <!-- 小路（手绘虚线感） -->
+  <line x1="0" y1="305" x2="390" y2="296" stroke="#F4EDDC" stroke-width="5"/>
+  <line x1="0" y1="485" x2="390" y2="476" stroke="#F4EDDC" stroke-width="5"/>
+  <line x1="130" y1="0" x2="122" y2="844" stroke="#F4EDDC" stroke-width="5"/>
+  <line x1="245" y1="0" x2="238" y2="844" stroke="#F4EDDC" stroke-width="5"/>
+  <!-- 街道名 -->
+  <text x="20" y="196" font-size="9" fill="#B7AA8D" font-family="KaiTi, serif">梧桐巷</text>
+  <text x="200" y="376" font-size="9" fill="#B7AA8D" font-family="KaiTi, serif">手艺街</text>
+</svg>
+
+<!-- 顶部 -->
+<div class="masthead">
+  <div class="wordmark">
+    <div class="cn">附近职人</div>
+    <div class="sub">· 街坊的手艺地图 ·</div>
+  </div>
+  <div class="stamp">本<br>地<br>在<br>线</div>
+</div>
+
+<!-- 分类筛选 -->
+<div class="filters">
+  <div class="chips">
+    <div class="chip on">全部</div>
+    <div class="chip">家政保洁</div>
+    <div class="chip">维修安装</div>
+    <div class="chip">家教陪练</div>
+    <div class="chip">摄影跟拍</div>
+    <div class="chip">代驾跑腿</div>
+  </div>
+  <div class="chips chips-sub">
+    <div class="chip sm on">水电维修</div>
+    <div class="chip sm">家电维修</div>
+    <div class="chip sm">家具安装</div>
+    <div class="chip sm">管道疏通</div>
+  </div>
+</div>
+
+<!-- 地图标记（印章式） -->
+<svg style="position:absolute;z-index:12;left:60px;top:300px" width="36" height="36" viewBox="0 0 36 36"><rect x="1" y="1" width="34" height="34" rx="4" fill="#C23A2E" stroke="#8E2B20" stroke-width="1.5"/><rect x="5" y="5" width="26" height="26" rx="2" fill="none" stroke="#F2E9D8" stroke-width="1" opacity=".6"/><text x="18" y="23" font-size="13" fill="#FBF3E6" text-anchor="middle" font-family="Kaiti,serif" font-weight="700">修</text></svg>
+<svg style="position:absolute;z-index:12;left:222px;top:158px" width="32" height="32" viewBox="0 0 36 36"><rect x="1" y="1" width="34" height="34" rx="4" fill="#3C5C46" stroke="#2C4636" stroke-width="1.5"/><text x="18" y="23" font-size="13" fill="#F2E9D8" text-anchor="middle" font-family="Kaiti,serif" font-weight="700">洁</text></svg>
+<svg style="position:absolute;z-index:12;left:130px;top:478px" width="32" height="32" viewBox="0 0 36 36"><rect x="1" y="1" width="34" height="34" rx="4" fill="#8A6D3B" stroke="#6E5630" stroke-width="1.5"/><text x="18" y="23" font-size="13" fill="#F2E9D8" text-anchor="middle" font-family="Kaiti,serif" font-weight="700">教</text></svg>
+<svg style="position:absolute;z-index:12;left:284px;top:428px" width="32" height="32" viewBox="0 0 36 36"><rect x="1" y="1" width="34" height="34" rx="4" fill="#7A5A8C" stroke="#614A70" stroke-width="1.5"/><text x="18" y="23" font-size="13" fill="#F7F0F7" text-anchor="middle" font-family="Kaiti,serif" font-weight="700">摄</text></svg>
+<svg style="position:absolute;z-index:12;left:100px;top:528px" width="32" height="32" viewBox="0 0 36 36"><rect x="1" y="1" width="34" height="34" rx="4" fill="#B07A2E" stroke="#90631F" stroke-width="1.5"/><text x="18" y="23" font-size="13" fill="#F7F0E2" text-anchor="middle" font-family="Kaiti,serif" font-weight="700">跑</text></svg>
+
+<div class="callout" style="left:42px;top:252px;">上门水电维修 · 350m</div>
+
+<!-- 定位按钮 -->
+<div class="fab">
+  <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="#2E2A24" stroke-width="2.4"/><circle cx="11" cy="11" r="2.6" fill="#C23A2E"/><line x1="11" y1="0" x2="11" y2="4" stroke="#2E2A24" stroke-width="2.4"/><line x1="11" y1="18" x2="11" y2="22" stroke="#2E2A24" stroke-width="2.4"/><line x1="0" y1="11" x2="4" y2="11" stroke="#2E2A24" stroke-width="2.4"/><line x1="18" y1="11" x2="22" y2="11" stroke="#2E2A24" stroke-width="2.4"/></svg>
+</div>
+
+<!-- 底部面板 -->
+<div class="sheet">
+  <div class="handle"></div>
+  <div class="toolbar">
+    <div class="tool">看列表</div>
+    <div class="tool paper">发布技能</div>
+  </div>
+  <div class="card">
+    <div class="card-kicker">水电维修 · 350m</div>
+    <div class="card-title">上门水电维修</div>
+    <div class="card-sub">张师傅 · 手艺街 12 号</div>
+    <div class="card-go">查看详情和联系方式</div>
+  </div>
+</div>
+
+</body>
+</html>

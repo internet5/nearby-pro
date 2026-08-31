@@ -1,11 +1,15 @@
 <view class="page">
   <view class="hero">
-    <view class="hero-title">我的发布</view>
-    <view class="hero-sub">上架中的技能会出现在附近地图上，30 天后自动过期。</view>
+    <view class="avatar">我</view>
+    <view class="hero-main">
+      <view class="hero-title">我的发布</view>
+      <view class="hero-sub">上架中的技能会出现在附近地图上，30 天后自动过期。</view>
+    </view>
   </view>
 
   <view class="empty" wx:if="{{list.length === 0}}">
-    还没有发布过。去地图页点「发布技能」，把自己标到附近。
+    <view class="empty-icon">+</view>
+    <view class="empty-text">还没有发布过。去地图页点「发布技能」，把自己标到附近。</view>
   </view>
 
   <view
@@ -20,7 +24,10 @@
       <view class="status status-{{item.status}}">{{item.statusText}}</view>
     </view>
     <view class="sub">{{item.categoryName}}{{item.itemText ? ' · ' + item.itemText : (item.tagText ? ' · ' + item.tagText : '')}} · {{item.address}}</view>
-    <view class="off" wx:if="{{item.status === 1}}" data-listing-id="{{item.id}}" catchtap="onOffline">下架</view>
+    <view class="card-foot">
+      <view class="off" wx:if="{{item.status === 1}}" data-listing-id="{{item.id}}" catchtap="onOffline">下架</view>
+      <view class="arrow">›</view>
+    </view>
   </view>
 
   <view class="publish" bindtap="onPublish">发布技能</view>
