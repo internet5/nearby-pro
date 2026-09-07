@@ -6,7 +6,11 @@
 }
 
 .hero {
-  padding: 16rpx 8rpx 32rpx;
+  margin-top: 24rpx;
+  padding: 44rpx 36rpx;
+  background: linear-gradient(135deg, #E9EFE2 0%, #F6F9F1 100%);
+  border: 1rpx solid var(--primary-line);
+  border-radius: var(--radius-md);
 }
 
 .hero-badge {
@@ -14,7 +18,8 @@
   align-items: center;
   gap: 10rpx;
   padding: 10rpx 24rpx;
-  background: var(--primary-soft);
+  background: #FFFFFF;
+  border: 1rpx solid var(--primary-line);
   border-radius: 999rpx;
   font-size: 24rpx;
   color: var(--primary-deep);
@@ -80,13 +85,51 @@
   border: 1rpx solid var(--primary-line);
 }
 
+/* 会做这些按工种分组：组名小字 + 该组的项目标签 */
+.skill-group + .skill-group {
+  margin-top: 24rpx;
+}
+
+.skill-group-name {
+  margin-bottom: 12rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+
 .desc {
   font-size: 30rpx;
   line-height: 1.7;
 }
 
+/* 位置卡片内嵌小地图：只展示发布定点，点击后打开原生位置页细看 */
+.loc-map {
+  margin-top: 20rpx;
+  width: 100%;
+  height: 280rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid var(--line);
+  box-sizing: border-box;
+}
+
+.loc-tip {
+  margin-left: 12rpx;
+  font-size: 20rpx;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ink-3);
+}
+
+.loc-arrow {
+  margin-left: 10rpx;
+  font-size: 28rpx;
+  color: var(--ink-3);
+}
+
 .card-contact {
-  background: linear-gradient(135deg, #FDF3EC, #FBE7D8);
+  background: linear-gradient(135deg, #E9EFE2, #DDE8D6);
+  border: 1rpx solid var(--primary-line);
 }
 
 .contact {
@@ -116,7 +159,7 @@
   display: flex;
   gap: 16rpx;
   padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
-  background: rgba(246, 244, 239, 0.96);
+  background: rgba(243, 246, 238, 0.96);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-top: 1rpx solid var(--line);
@@ -136,7 +179,7 @@
 .btn-primary {
   background: linear-gradient(135deg, var(--primary), var(--primary-deep));
   color: #FFFFFF;
-  box-shadow: 0 12rpx 28rpx rgba(228, 95, 43, 0.32);
+  box-shadow: 0 12rpx 28rpx rgba(62, 110, 79, 0.32);
 }
 
 .btn-ghost {

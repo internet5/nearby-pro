@@ -1,8 +1,8 @@
 <view class="page">
   <view class="hero">
-    <view class="avatar">我</view>
+    <view class="avatar">{{user.nickname ? user.nickname[0] : '我'}}</view>
     <view class="hero-main">
-      <view class="hero-title">我的发布</view>
+      <view class="hero-title">{{user.nickname || '我的发布'}}</view>
       <view class="hero-sub">上架中的技能会出现在附近地图上，30 天后自动过期。</view>
     </view>
   </view>
@@ -18,17 +18,37 @@
     class="card"
     data-listing-id="{{item.id}}"
     bindtap="onOpen"
+    hover-class="card-hover"
   >
     <view class="card-top">
+      <view class="dot {{item.categoryCode}}"></view>
       <view class="name">{{item.title}}</view>
       <view class="status status-{{item.status}}">{{item.statusText}}</view>
     </view>
-    <view class="sub">{{item.categoryName}}{{item.itemText ? ' · ' + item.itemText : (item.tagText ? ' · ' + item.tagText : '')}} · {{item.address}}</view>
+    <view class="cat-line">{{item.categoryName}}{{item.tagText ? ' · ' + item.tagText : ''}}</view>
+    <view class="sub">{{item.itemText ? item.itemText + ' · ' : ''}}{{item.address || '未填写地址'}} · {{item.viewCount || 0}} 次浏览</view>
     <view class="card-foot">
-      <view class="off" wx:if="{{item.status === 1}}" data-listing-id="{{item.id}}" catchtap="onOffline">下架</view>
-      <view class="arrow">›</view>
+      <block wx:if="{{item.status === 1}}">
+        <view class="act act-line" data-listing-id="{{item.id}}" catchtap="onEdit">编辑</view>
+        <button
+          class="btn-reset act act-solid"
+          open-type="share"
+          data-title="{{item.title}}"
+          data-category="{{item.categoryName}}"
+          catchtap="noop"
+        >转发</button>
+        <view class="act act-line" data-listing-id="{{item.id}}" catchtap="onOffline">下架</view>
+      </block>
+      <block wx:if="{{item.status === 2 || item.status === 3}}">
+        <view class="act act-solid" data-listing-id="{{item.id}}" catchtap="onRelist">重新上架</view>
+        <view class="act act-line" data-listing-id="{{item.id}}" catchtap="onDelete">删除</view>
+      </block>
+      <block wx:if="{{item.status === 4}}">
+        <view class="act act-line" data-listing-id="{{item.id}}" catchtap="onDelete">删除</view>
+      </block>
     </view>
   </view>
 
   <view class="publish" bindtap="onPublish">发布技能</view>
+  <view class="feedback-link" bindtap="onFeedback">意见与建议</view>
 </view>

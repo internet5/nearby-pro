@@ -9,8 +9,11 @@
       markers="{{markers}}"
       show-location
       enable-poi="{{false}}"
+      enable-markers-cluster="{{true}}"
       bindmarkertap="onMarkerTap"
       bindcallouttap="onCalloutTap"
+      bindclusterclick="onClusterClick"
+      bindtap="onMapTap"
     />
 
     <view class="masthead">
@@ -19,7 +22,6 @@
         <text class="loc-text">当前位置</text>
         <text class="loc-count">{{filtered.length}} 人在线</text>
       </view>
-      <view class="brand-tag">附近<br/>职人</view>
     </view>
 
     <view class="filters">
@@ -73,10 +75,10 @@
     </view>
 
     <block wx:if="{{showList}}">
-      <view class="sheet-title">附近 {{filtered.length}} 人在接活</view>
-      <scroll-view scroll-y class="list" wx:if="{{filtered.length}}">
+      <view class="sheet-title">{{groupFilter ? '这个位置有 ' + listItems.length + ' 项技能' : '附近 ' + filtered.length + ' 人在接活'}}</view>
+      <scroll-view scroll-y class="list" wx:if="{{listItems.length}}">
         <view
-          wx:for="{{filtered}}"
+          wx:for="{{listItems}}"
           wx:key="id"
           class="row"
           data-listing-id="{{item.id}}"
@@ -108,5 +110,14 @@
         <view class="hint-sub">{{filtered.length ? '点地图上的名字看详情' : emptyText}}</view>
       </view>
     </block>
+  </view>
+
+  <view class="mask" wx:if="{{showPrompt}}" bindtap="onPromptClose">
+    <view class="prompt" catchtap="noopPrompt">
+      <view class="prompt-title">会手艺？让附近的人找到你</view>
+      <view class="prompt-sub">发布你的技能，一键转发到微信群、朋友圈，附近有需要的人看到直接联系你。</view>
+      <view class="prompt-btn" bindtap="onPromptGo">发布我的技能</view>
+      <view class="prompt-later" bindtap="onPromptClose">先随便看看</view>
+    </view>
   </view>
 </view>

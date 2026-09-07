@@ -1,3 +1,9 @@
+const { request } = require('./request')
+
+const CACHE_KEY = 'nearby_pro_categories'
+const ALL_ITEM = { id: 0, code: 'all', name: '全部', tags: [] }
+
+// 硬编码兜底：接口不可用时保证基本可用（与数据库种子一致）
 const CATEGORIES = [
   { id: 0, code: 'all', name: '全部', tags: [] },
   {
@@ -63,8 +69,27 @@ const CATEGORIES = [
   }
 ]
 
+// 当前生效的分类字典：接口数据 > 上次缓存 > 硬编码兜底
+const cached = wx.getStorageSync(CACHE_KEY)
+let dynamicCategories = cached && cached.length ? [ALL_ITEM].concat(cached) : null
+
+function currentCategories() {
+  return dynamicCategories || CATEGORIES
+}
+
+// 拉取服务端分类字典（运营可改库调整），成功写缓存；失败回退缓存/兜底
+function loadFromApi() {
+  return request({ url: '/api/categories' }).then((list) => {
+    const categories = [ALL_ITEM].concat(list || [])
+    dynamicCategories = categories
+    wx.setStorageSync(CACHE_KEY, list || [])
+    return categories
+  })
+}
+
 function findCategory(id) {
-  return CATEGORIES.find((item) => item.id === id) || CATEGORIES[6]
+  const list = currentCategories()
+  return list.find((item) => item.id === id) || list[list.length - 1] || CATEGORIES[6]
 }
 
 function tagList(categoryId) {
@@ -86,12 +111,37 @@ function itemsOfTags(categoryId, tagNames) {
   return result
 }
 
+// 把 items 归一化为按工种分组的统一形状 [{ tag, names: [] }]
+// 兼容旧版平铺结构 ["空调","电磁炉"]（分不清归属，tag 记为空串）
+function normalizeItems(items) {
+  if (!items || !items.length) return []
+  if (typeof items[0] === 'string') {
+    return [{ tag: '', names: items.slice() }]
+  }
+  return items.map((group) => ({
+    tag: group.tag || '',
+    names: (group.names || []).slice()
+  }))
+}
+
+// 打平所有组的项目名，用于列表文案和按项目筛选
+function flattenItems(items) {
+  const result = []
+  normalizeItems(items).forEach((group) => {
+    group.names.forEach((name) => {
+      if (result.indexOf(name) < 0) result.push(name)
+    })
+  })
+  return result
+}
+
 function joinList(values) {
   return (values || []).join(' · ')
 }
 
 function shortLabel(item) {
-  if (item.items && item.items.length) return item.items[0]
+  const flat = flattenItems(item.items)
+  if (flat.length) return flat[0]
   if (item.tags && item.tags.length) return item.tags[0]
   const title = item.title || ''
   return title.length > 8 ? `${title.slice(0, 8)}…` : title
@@ -99,10 +149,14 @@ function shortLabel(item) {
 
 module.exports = {
   CATEGORIES,
+  currentCategories,
+  loadFromApi,
   findCategory,
   tagList,
   itemsOfTag,
   itemsOfTags,
+  normalizeItems,
+  flattenItems,
   joinList,
   shortLabel
 }

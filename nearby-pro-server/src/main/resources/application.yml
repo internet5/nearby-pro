@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    # 默认加载 application-local.yml（数据库/Redis/微信密钥，已 gitignore）
+    active: local
+  jackson:
+    time-zone: Asia/Shanghai
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+wx:
+  # mock=true 时不调微信真实接口，任意 code 换 openid=mock_{code}，本地联调用
+  mock: true
+  # 发布内容安全检测（msgSecCheck），上线前必须改 true
+  security-check: false
+  # JWT 签名密钥，生产环境务必在 application-local.yml 里换成随机长串
+  jwt-secret: nearby-pro-dev-jwt-secret-0123456789abcdef
+  jwt-expire-days: 30

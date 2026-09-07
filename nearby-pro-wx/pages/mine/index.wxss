@@ -12,7 +12,7 @@
   padding: 36rpx 32rpx;
   border-radius: var(--radius-lg);
   background: linear-gradient(135deg, var(--primary), var(--primary-deep));
-  box-shadow: 0 16rpx 40rpx rgba(228, 95, 43, 0.28);
+  box-shadow: 0 16rpx 40rpx rgba(62, 110, 79, 0.28);
 }
 
 .avatar {
@@ -84,20 +84,41 @@
   background: var(--surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-hover {
+  transform: translateY(2rpx);
+  box-shadow: 0 6rpx 20rpx rgba(26, 23, 20, 0.1);
 }
 
 .card-top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 16rpx;
+  gap: 14rpx;
 }
+
+/* 分类色点，与地图页列表行的配色一致 */
+.dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot.clean { background: #14B8A6; }
+.dot.repair { background: #F97316; }
+.dot.tutor { background: #3B82F6; }
+.dot.photo { background: #EAB308; }
+.dot.run { background: #22C55E; }
+.dot.other { background: #8B5CF6; }
 
 .name {
   font-size: 32rpx;
   font-weight: 700;
   flex: 1;
   min-width: 0;
+  line-height: 1.4;
 }
 
 .status {
@@ -114,33 +135,66 @@
   color: var(--success);
 }
 
+.status-3 {
+  background: #FBF0E4;
+  color: #C77E2E;
+}
+
+.status-4 {
+  background: #FBEAEA;
+  color: #C74A3C;
+}
+
+.cat-line {
+  margin-top: 14rpx;
+  padding-left: 30rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--primary);
+}
+
 .sub {
-  margin-top: 12rpx;
+  margin-top: 8rpx;
+  padding-left: 30rpx;
   font-size: 24rpx;
   color: var(--ink-2);
   line-height: 1.5;
 }
 
+/* 操作区：一行等宽按钮，view 和 button 混排也保持高度字号一致 */
 .card-foot {
-  margin-top: 24rpx;
+  margin-top: 28rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid var(--line);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: stretch;
+  gap: 16rpx;
 }
 
-.off {
-  padding: 10rpx 28rpx;
-  font-size: 22rpx;
-  color: var(--primary-deep);
-  border: 1rpx solid var(--primary-line);
-  background: var(--primary-soft);
+.act {
+  flex: 1;
+  height: 64rpx;
+  line-height: 62rpx;
+  text-align: center;
+  font-size: 24rpx;
   border-radius: 999rpx;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.arrow {
-  font-size: 36rpx;
-  color: var(--ink-3);
-  font-weight: 300;
+/* 主操作（转发/重新上架）：浅绿实底 */
+.act-solid {
+  color: var(--primary-deep);
+  background: var(--primary-soft);
+  border: 1rpx solid var(--primary-line);
+  font-weight: 600;
+}
+
+/* 次操作（编辑/下架/删除）：描边 */
+.act-line {
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1rpx solid var(--line);
 }
 
 .publish {
@@ -153,5 +207,12 @@
   border-radius: 999rpx;
   font-size: 28rpx;
   font-weight: 600;
-  box-shadow: 0 14rpx 32rpx rgba(228, 95, 43, 0.32);
+  box-shadow: 0 14rpx 32rpx rgba(62, 110, 79, 0.32);
+}
+
+.feedback-link {
+  margin-top: 28rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--ink-3);
 }

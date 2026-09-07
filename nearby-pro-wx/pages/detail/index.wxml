@@ -2,27 +2,56 @@
   <view class="hero">
     <view class="hero-badge">
       <view class="hero-dot {{item.categoryCode}}"></view>
-      <text>{{item.categoryName}}{{item.tagText ? ' · ' + item.tagText : ''}}</text>
+      <text>{{item.categoryName}}</text>
     </view>
     <view class="title">{{item.title}}</view>
-    <view class="meta">{{item.nickname}} · {{item.distanceText || item.address}}</view>
+    <view class="meta">
+      <text>{{item.isOwner ? '我发布的' : item.nickname}}</text>
+      <text wx:if="{{item.distanceText}}"> · 距离{{item.distanceText}}</text>
+      <text wx:if="{{item.status === 1 && remainDays !== null}}"> · 剩 {{remainDays}} 天</text>
+      <text wx:if="{{item.status === 2}}"> · 已下架</text>
+      <text wx:if="{{item.status === 3}}"> · 已过期</text>
+    </view>
   </view>
 
   <view class="card" wx:if="{{item.items && item.items.length}}">
-    <view class="block-label">会做这些</view>
+    <view class="block-label">具体会做哪些</view>
+    <view class="skill-group" wx:for="{{item.items}}" wx:for-item="group" wx:key="tag">
+      <view wx:if="{{group.tag}}" class="skill-group-name">{{group.tag}}</view>
+      <view class="tags">
+        <view class="tag" wx:for="{{group.names}}" wx:for-item="skill" wx:key="*this">{{skill}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 没勾具体项目的发布，工种在这里单独展示，避免详情里看不到工种 -->
+  <view class="card" wx:elif="{{item.tags && item.tags.length}}">
+    <view class="block-label">工种</view>
     <view class="tags">
-      <view class="tag" wx:for="{{item.items}}" wx:for-item="skill" wx:key="*this">{{skill}}</view>
+      <view class="tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</view>
     </view>
   </view>
 
   <view class="card">
-    <view class="block-label">怎么找我</view>
+    <view class="block-label">补充说明</view>
     <view class="desc">{{item.description || '发布人暂未填写说明'}}</view>
   </view>
 
   <view class="card">
-    <view class="block-label">位置</view>
-    <view class="desc">{{item.address || '地图标记位置'}}</view>
+    <view class="block-label">服务位置<text class="loc-tip">点击地图可放大查看</text></view>
+    <view class="desc" bindtap="onOpenLocation">{{item.address || '地图标记位置'}}<text class="loc-arrow">›</text></view>
+    <map
+      wx:if="{{locMarkers.length}}"
+      class="loc-map"
+      latitude="{{item.latitude}}"
+      longitude="{{item.longitude}}"
+      scale="16"
+      markers="{{locMarkers}}"
+      enable-zoom="{{false}}"
+      enable-scroll="{{false}}"
+      enable-rotate="{{false}}"
+      bindtap="onOpenLocation"
+    />
   </view>
 
   <view class="card card-contact">
@@ -31,8 +60,8 @@
   </view>
 
   <view class="footer">
-    <view class="link" bindtap="onReport">举报</view>
-    <view wx:if="{{item.isOwner}}" class="link" bindtap="onOffline">下架这条发布</view>
+    <view wx:if="{{!item.isOwner}}" class="link" bindtap="onReport">举报</view>
+    <view wx:if="{{item.isOwner && item.status === 1}}" class="link" bindtap="onOffline">下架这条发布</view>
   </view>
 
   <view class="actions">

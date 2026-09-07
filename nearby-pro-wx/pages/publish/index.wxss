@@ -40,10 +40,30 @@
   letter-spacing: 0.04em;
 }
 
+/* 必填标记 */
+.req {
+  margin-left: 6rpx;
+  color: #E4572E;
+  font-weight: 700;
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 14rpx;
+}
+
+/* 具体项目按工种分组：组名小字 + 该组的项目 chips */
+.skill-group + .skill-group {
+  margin-top: 24rpx;
+}
+
+.skill-group-name {
+  margin-bottom: 12rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
 }
 
 .chip {
@@ -85,6 +105,12 @@
   padding: 26rpx;
   font-size: 28rpx;
   color: var(--ink);
+}
+
+/* 原生 input 高度不随内容撑开，上下 padding 会把文字挤出可视区，改用固定高度居中 */
+.input {
+  height: 92rpx;
+  padding: 0 26rpx;
 }
 
 .area {
@@ -153,7 +179,7 @@
   border-radius: 999rpx;
   font-size: 30rpx;
   font-weight: 700;
-  box-shadow: 0 14rpx 32rpx rgba(228, 95, 43, 0.32);
+  box-shadow: 0 14rpx 32rpx rgba(62, 110, 79, 0.32);
 }
 
 .note {
@@ -163,4 +189,73 @@
   color: var(--ink-3);
   line-height: 1.6;
   text-align: center;
+}
+
+/* 发布成功页：引导转发到微信群/朋友圈 */
+.done-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.done-card {
+  width: 100%;
+  padding: 72rpx 48rpx;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.done-icon {
+  width: 120rpx;
+  height: 120rpx;
+  line-height: 116rpx;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: #E7F4EC;
+  color: var(--success);
+  font-size: 56rpx;
+  font-weight: 700;
+  border: 2rpx solid #CBE5D5;
+  box-sizing: border-box;
+}
+
+.done-title {
+  margin-top: 32rpx;
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.done-sub {
+  margin-top: 20rpx;
+  font-size: 26rpx;
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+
+.done-share {
+  margin-top: 48rpx;
+  height: 92rpx;
+  line-height: 92rpx;
+  width: 100%;
+  text-align: center;
+  background: linear-gradient(135deg, var(--primary), var(--primary-deep));
+  color: #FFFFFF;
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  box-shadow: 0 14rpx 32rpx rgba(62, 110, 79, 0.32);
+}
+
+.done-map {
+  margin-top: 24rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  border: 1rpx solid var(--line);
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  color: var(--ink);
+  background: var(--surface-soft);
 }

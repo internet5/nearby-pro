@@ -1,11 +1,11 @@
-<view class="page">
+<view class="page" wx:if="{{!published}}">
   <view class="sec">
     <view class="sec-head">
       <view class="sec-bar"></view>
       <view class="sec-title">选择技能</view>
     </view>
 
-    <view class="label">技能分类</view>
+    <view class="label">技能分类<text class="req">*</text></view>
     <view class="chips">
       <view
         wx:for="{{categories}}"
@@ -16,7 +16,7 @@
       >{{item.name}}</view>
     </view>
 
-    <view class="label">工种（最多 3 个）</view>
+    <view class="label">工种（最多 3 个）<text class="req">*</text></view>
     <view class="chips">
       <view
         wx:for="{{tagItems}}"
@@ -29,16 +29,26 @@
 
     <block wx:if="{{showSkills}}">
       <view class="label">具体会做哪些（只勾你会的）</view>
-      <view class="chips">
-        <view
-          wx:for="{{skillItems}}"
-          wx:key="name"
-          class="chip {{item.on ? 'chip-on' : ''}}"
-          data-name="{{item.name}}"
-          bindtap="onSkill"
-        >{{item.name}}</view>
+      <view
+        class="skill-group"
+        wx:for="{{skillGroups}}"
+        wx:for-item="group"
+        wx:key="tag"
+      >
+        <view class="skill-group-name">{{group.tag}}</view>
+        <view class="chips">
+          <view
+            wx:for="{{group.options}}"
+            wx:for-item="opt"
+            wx:key="name"
+            class="chip {{opt.on ? 'chip-on' : ''}}"
+            data-tag="{{group.tag}}"
+            data-name="{{opt.name}}"
+            bindtap="onSkill"
+          >{{opt.name}}</view>
+        </view>
       </view>
-      <view class="hint">勾了「家电维修」不等于什么电器都会。不会修电磁炉就不要勾，避免对方白跑一趟。</view>
+      <view class="hint">项目按工种分开勾。勾了「家电维修」不等于什么电器都会。不会修电磁炉就不要勾，避免对方白跑一趟。</view>
     </block>
   </view>
 
@@ -48,7 +58,7 @@
       <view class="sec-title">介绍自己</view>
     </view>
 
-    <view class="label">一句话介绍</view>
+    <view class="label">技能名称（一句话介绍）<text class="req">*</text></view>
     <input
       class="input"
       maxlength="40"
@@ -70,7 +80,7 @@
   <view class="sec">
     <view class="sec-head">
       <view class="sec-bar"></view>
-      <view class="sec-title">服务位置</view>
+      <view class="sec-title">服务位置<text class="req">*</text></view>
     </view>
 
     <view class="loc" bindtap="onChooseLocation">
@@ -83,7 +93,7 @@
   <view class="sec">
     <view class="sec-head">
       <view class="sec-bar"></view>
-      <view class="sec-title">联系方式</view>
+      <view class="sec-title">联系方式<text class="req">*</text></view>
     </view>
 
     <view class="seg">
@@ -99,6 +109,16 @@
     />
   </view>
 
-  <view class="submit" bindtap="onSubmit">发布到地图</view>
-  <view class="note">发布后保留 30 天，可在「我的」里提前下架。当前为本地演示，数据只存在这台手机。</view>
+  <view class="submit" bindtap="onSubmit">{{editId ? '保存修改' : '发布到地图'}}</view>
+  <view class="note">发布后可一键转发到微信群、朋友圈，让附近的人直接找到你。保留 30 天，可在「我的」里提前下架。当前为本地演示，数据只存在这台手机。</view>
+</view>
+
+<view class="page done-page" wx:else>
+  <view class="done-card">
+    <view class="done-icon">✓</view>
+    <view class="done-title">已发布到地图</view>
+    <view class="done-sub">转发到微信群或朋友圈，附近需要「{{publishedTitle}}」的人马上就能找到你。</view>
+    <button class="btn-reset done-share" open-type="share">转发技能卡片</button>
+    <view class="done-map" bindtap="onGoMap">查看地图</view>
+  </view>
 </view>

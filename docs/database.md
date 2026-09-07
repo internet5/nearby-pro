@@ -1,7 +1,7 @@
 # 数据库设计
 
 引擎：PostgreSQL 14+，启用 PostGIS。  
-原则：第一版只保留用户、分类、发布、举报四张表。聊天、支付、广告、评价全部不做。
+原则：第一版只保留用户、分类、发布、举报、意见反馈五张表。聊天、支付、广告、评价全部不做。
 
 ## ER 关系
 
@@ -10,6 +10,7 @@ users 1 ── N listings
 categories 1 ── N listings
 users 1 ── N reports
 listings 1 ── N reports
+users 1 ── N feedbacks
 ```
 
 ## 表说明
@@ -37,11 +38,12 @@ listings 1 ── N reports
 | id | SMALLSERIAL | 主键 |
 | code | VARCHAR(32) | 英文码，前后端共用：clean / repair / tutor / photo / run / other |
 | name | VARCHAR(32) | 展示名 |
+| tags | JSONB | 两级字典：`[{"name":"水电维修","items":["电路跳闸","水管漏水"]}]`，工种 → 具体项目 |
 | sort_order | SMALLINT | 越小越靠前 |
 | enabled | BOOLEAN | 是否展示 |
 
 种子分类：家政保洁、维修安装、家教陪练、摄影跟拍、代驾跑腿、其他。冷启动对外主推前三个。  
-每个分类挂工种标签；容易误匹配的工种再挂具体项目（如家电维修 → 空调 / 冰箱 / 电磁炉）。发布时必须勾会做的项目，需求方按项目筛选。
+每个分类挂工种标签；容易误匹配的工种再挂具体项目（如家电维修 → 空调 / 冰箱 / 电磁炉）。发布时勾会做的项目，需求方按工种/项目筛选。字典与小程序发布页共用，改库即可生效。
 
 ### listings（技能发布）
 
@@ -53,8 +55,8 @@ listings 1 ── N reports
 | user_id | BIGINT | 发布人 |
 | category_id | SMALLINT | 分类 |
 | title | VARCHAR(40) | 一句话技能，如「上门水电维修」 |
-| tags | JSONB | 工种，如 `["家电维修"]` |
-| items | JSONB | 具体会做的项目，如 `["电磁炉","油烟机"]`，只勾会的 |
+| tags | JSONB | 工种，如 `["家电维修"]`，最多 3 个 |
+| items | JSONB | 具体会做的项目，按工种分组：`[{"tag":"家电维修","names":["空调","电磁炉"]}]`，只勾会的 |
 | description | VARCHAR(500) | 补充说明 |
 | photo_urls | JSONB | 图片 URL 数组，最多 3 张 |
 | contact_type | VARCHAR(16) | `wechat` 或 `phone` |
@@ -88,7 +90,25 @@ listings 1 ── N reports
 | detail | VARCHAR(200) | 补充 |
 | created_at | TIMESTAMPTZ | 时间 |
 
-同一用户对同一条发布 24 小时内只能举报一次，应用层控制。
+同一用户对同一条发布 24 小时内只能举报一次，用 Redis `SETNX`（key `report:{userId}:{listingId}`，TTL 24h）限频；Redis 不可用时退化为查库判断。
+
+### feedbacks（意见与建议）
+
+用户提交的反馈，运营查库人工处理，MVP 不做状态管理。
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGSERIAL | 主键 |
+| user_id | BIGINT | 提交人 |
+| content | VARCHAR(500) | 反馈内容 |
+| created_at | TIMESTAMPTZ | 时间 |
+
+## 缓存
+
+Redis（本地开发 `localhost:6379` 无密码）承担两件事，全部可降级：
+
+- `wx:access_token`：微信接口凭证缓存，提前 2 分钟刷新
+- `report:{userId}:{listingId}`：举报 24 小时限频
 
 ## 过期策略
 
