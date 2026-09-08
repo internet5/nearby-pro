@@ -1,11 +1,14 @@
 package com.nearby.pro.common;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -37,6 +40,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ApiResult<Void> handleMissingParam(MissingServletRequestParameterException e) {
         return ApiResult.fail("缺少参数：" + e.getParameterName());
+    }
+
+    /** 静态资源不存在：公网扫描器常探测 /doc.html、/swagger-ui.html 等路径，404 返回即可，不打堆栈刷屏 */
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResult<Void> handleNoResource(NoResourceFoundException e) {
+        return ApiResult.fail("接口不存在");
     }
 
     @ExceptionHandler(Exception.class)

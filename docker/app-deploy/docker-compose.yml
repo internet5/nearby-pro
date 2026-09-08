@@ -1,0 +1,31 @@
+# 应用：nearby-pro-server jar 包（挂载运行，不打包进镜像）
+# jar 位置：本目录（app-deploy）下，与 docker-compose.yml 一起随目录上传服务器
+# 前置步骤：
+#   1) 先启动 ../middleware-deploy
+#   2) 项目根执行 mvn clean package -DskipTests
+#      并把 nearby-pro-server/target/nearby-pro-server-*.jar 拷进本目录
+# 启动：cd docker/app-deploy && docker compose up -d
+# 更新：替换本目录 jar 后执行 docker compose restart nearby-app
+name: nearby-app
+
+services:
+  nearby-app:
+    image: eclipse-temurin:17-jre
+    container_name: nearby-app
+    restart: unless-stopped
+    working_dir: /app
+    # shell 方式启动，让 *.jar 通配符生效，jar 文件名带版本号也不用改这里
+    entrypoint: ["sh", "-c", "java -jar /app/*.jar"]
+    environment:
+      TZ: Asia/Shanghai
+      # 中间件与本项目不在同一 compose 网络，经宿主机端口访问（172.17.0.1 = docker0 网桥宿主机地址）
+      SPRING_DATASOURCE_URL: jdbc:postgresql://172.17.0.1:5432/nearby_pro?stringtype=unspecified
+      REDIS_HOST: 172.17.0.1
+      # —— 以下三项上线前必须调整 ——
+      WX_MOCK: "true"                              # 上线改 "false"（真实微信登录）
+      WX_SECURITY_CHECK: "false"                   # 上线改 "true"（msgSecCheck 内容安全）
+      WX_JWT_SECRET: nearby-pro-dev-jwt-secret-0123456789abcdef  # 上线换随机长字符串
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app:ro    # 挂载本目录（compose 文件所在处）为容器 /app，jar 放本目录即可

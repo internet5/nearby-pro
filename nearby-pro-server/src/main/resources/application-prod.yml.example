@@ -1,0 +1,21 @@
+# 生产环境配置模板：复制为 application-prod.yml 后按实际值修改
+# cp application-prod.yml.example application-prod.yml
+spring:
+  datasource:
+    # PostgreSQL 必须带 stringtype=unspecified：允许把 JSON 字符串直接写入 jsonb 列
+    # （useSSL / serverTimezone 是 MySQL 的参数，PG 不需要）
+    url: jdbc:postgresql://${DB_HOST:服务器IP}:5432/${DB_NAME:nearby_pro}?stringtype=unspecified
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:请改成真实密码}
+    hikari:
+      minimum-idle: 20
+      maximum-pool-size: 100
+  data:
+    redis:
+      host: ${REDIS_HOST:服务器IP}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      lettuce:
+        pool:
+          max-active: 200
+          max-idle: 50

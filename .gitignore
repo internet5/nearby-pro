@@ -10,8 +10,16 @@ target/
 *.class
 *.log
 application-local.yml
+application-prod.yml
 .env
+
+# 应用 jar（构建产物，随 app-deploy 目录拷贝上传、不走 git）
+docker/app-deploy/*.jar
 
 # 系统
 .DS_Store
 Thumbs.db
+
+# nginx 证书（私钥不进 git，放服务器/本地该目录下）
+docker/middleware-deploy/nginx/ssl/*
+!docker/middleware-deploy/nginx/ssl/.gitkeep

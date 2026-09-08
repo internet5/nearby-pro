@@ -1,0 +1,62 @@
+# 中间件：PostGIS + Redis + Nginx
+# 各 compose 使用自己的默认网络，跨 compose 通过宿主机端口访问（172.17.0.1 = docker0 网桥宿主机地址）
+# 数据与配置统一挂载在宿主机 /data 目录：
+#   /data/postgis      数据库数据
+#   /data/redis        Redis 持久化数据
+#   /data/nginx/conf   Nginx 配置（deploy.sh 从本目录 nginx/conf/ 同步）
+#   /data/nginx/ssl    Nginx 证书（*.crt *.key）
+#   /data/nginx/logs   Nginx 日志
+# 启动：./deploy.sh（内部执行 docker compose up -d）
+name: nearby-middleware
+
+services:
+  postgis:
+    image: postgis/postgis:17-3.5
+    container_name: postgis
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: nearby_pro
+      TZ: Asia/Shanghai
+    ports:
+      - "5432:5432"
+    volumes:
+      - /data/postgis:/var/lib/postgresql/data
+      # 首次启动（空数据目录）自动执行：全量初始化（建 PostGIS 扩展、建表、分类与测试数据）
+      # 脚本头部自带「摘扩展 + 清 public schema」，空库/旧库都可重复执行、无 DROP 报错
+      - ./sql/nearby-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d nearby_pro"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    # AOF 持久化：举报限频数据重启不丢
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - /data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /data/nginx/conf:/etc/nginx/conf.d:ro    # 反代配置（default.conf，从仓库拷入）
+      - /data/nginx/ssl:/etc/nginx/ssl:ro        # 证书（*.crt *.key，从本地上传）
+      - /data/nginx/logs:/var/log/nginx          # 访问/错误日志落盘（挂载后 docker logs 里不再有 nginx 日志）
+    # 反代目标：宿主机 8080（nearby-app 容器映射），见 nginx/conf/default.conf
