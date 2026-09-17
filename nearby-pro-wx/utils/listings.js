@@ -9,6 +9,14 @@ function openDetail(id) {
   })
 }
 
+// 跳到地图页并聚焦某条技能：地图是 tabBar 页，switchTab 不能带参数，经 globalData 传递、地图页 onShow 读取
+function focusOnMap(id) {
+  if (id === undefined || id === null || id === '') return
+  getApp().globalData.focusListingId = id
+  wx.switchTab({ url: '/pages/map/index' })
+}
+
 module.exports = {
-  openDetail
+  openDetail,
+  focusOnMap
 }

@@ -48,6 +48,33 @@
   line-height: 1.6;
 }
 
+/* 发布 / 收藏 切换 */
+.tabs {
+  margin-top: 28rpx;
+  display: flex;
+  gap: 12rpx;
+}
+
+.tab {
+  flex: 1;
+  height: 72rpx;
+  line-height: 70rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1rpx solid var(--line);
+  border-radius: 999rpx;
+  box-sizing: border-box;
+}
+
+.tab-on {
+  color: var(--primary-deep);
+  background: var(--primary-soft);
+  border-color: var(--primary-line);
+  font-weight: 600;
+}
+
 .empty {
   margin-top: 32rpx;
   padding: 72rpx 48rpx;

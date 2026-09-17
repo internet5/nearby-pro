@@ -68,6 +68,25 @@ function addFeedback(content) {
   )
 }
 
+/** 收藏技能（重复收藏幂等） */
+function addFavorite(listingId) {
+  return ensureLogin().then(() =>
+    request({ url: `/api/favorites/${listingId}`, method: 'POST' })
+  )
+}
+
+/** 取消收藏 */
+function removeFavorite(listingId) {
+  return ensureLogin().then(() =>
+    request({ url: `/api/favorites/${listingId}`, method: 'DELETE' })
+  )
+}
+
+/** 我的收藏（只含上架中的） */
+function favoriteList() {
+  return ensureLogin().then(() => request({ url: '/api/favorites' }))
+}
+
 module.exports = {
   loadCategories,
   nearby,
@@ -79,5 +98,8 @@ module.exports = {
   deleteListing,
   mineList,
   report,
-  addFeedback
+  addFeedback,
+  addFavorite,
+  removeFavorite,
+  favoriteList
 }

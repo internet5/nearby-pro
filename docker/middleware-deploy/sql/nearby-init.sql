@@ -158,6 +158,44 @@ ALTER SEQUENCE public.feedbacks_id_seq OWNED BY public.feedbacks.id;
 
 
 --
+-- Name: favorites; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.favorites (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    listing_id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: TABLE favorites; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.favorites IS '用户收藏';
+
+
+--
+-- Name: favorites_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.favorites_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: favorites_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.favorites_id_seq OWNED BY public.favorites.id;
+
+
+--
 -- Name: listings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -338,6 +376,13 @@ ALTER TABLE ONLY public.categories ALTER COLUMN id SET DEFAULT nextval('public.c
 --
 
 ALTER TABLE ONLY public.feedbacks ALTER COLUMN id SET DEFAULT nextval('public.feedbacks_id_seq'::regclass);
+
+
+--
+-- Name: favorites id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorites ALTER COLUMN id SET DEFAULT nextval('public.favorites_id_seq'::regclass);
 
 
 --
@@ -2472,6 +2517,14 @@ ALTER TABLE ONLY public.feedbacks
 
 
 --
+-- Name: favorites favorites_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorites
+    ADD CONSTRAINT favorites_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: listings listings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2544,6 +2597,13 @@ CREATE INDEX listings_user_idx ON public.listings USING btree (user_id, status);
 --
 
 CREATE INDEX reports_listing_idx ON public.reports USING btree (listing_id, created_at DESC);
+
+
+--
+-- Name: favorites_user_listing_uq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX favorites_user_listing_uq ON public.favorites USING btree (user_id, listing_id);
 
 
 --

@@ -35,4 +35,6 @@ public class ListingDetail {
     private Integer viewCount;
     private OffsetDateTime createTime;
     private Boolean isOwner;
+    /** 登录用户才有意义：是否已收藏 */
+    private Boolean isFavorited = false;
 }
