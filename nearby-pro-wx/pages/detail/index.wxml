@@ -60,6 +60,7 @@
   </view>
 
   <view class="footer">
+    <view wx:if="{{!item.isOwner}}" class="link" bindtap="onChat">联系TA</view>
     <view wx:if="{{!item.isOwner}}" class="link {{item.isFavorited ? 'link-on' : ''}}" bindtap="onFavorite">{{item.isFavorited ? '已收藏 ★' : '收藏 ☆'}}</view>
     <view wx:if="{{!item.isOwner}}" class="link" bindtap="onReport">举报</view>
     <view wx:if="{{item.isOwner && item.status === 1}}" class="link" bindtap="onOffline">下架这条发布</view>

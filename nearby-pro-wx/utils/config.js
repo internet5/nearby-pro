@@ -10,17 +10,22 @@ try {
 const CONFIG = {
   // 开发版：本地后端联调；真机预览时把 localhost 换成电脑的局域网 IP（如 http://192.168.1.5:8080）
   develop: {
-    BASE_URL: 'https://www.red-packet.com.cn',
-    MOCK_LOGIN: true
+    BASE_URL: 'http://127.0.0.1:8080',
+    // IM WebSocket 长连接（MobileIMSDK 网关，握手路径 /websocket 必须带上）
+    IM_WS_URL: 'ws://127.0.0.1:3000/websocket',
+    MOCK_LOGIN: false
   },
   // 体验版 / 正式版：连线上后端。前置：后端 WX_MOCK=false、域名备案通过、
-  // mp 后台配好 request 合法域名（体验版同样强制校验合法域名，不能用 IP 或 http）
+  // mp 后台配好 request 合法域名（体验版同样强制校验合法域名，不能用 IP 或 http）、
+  // socket 合法域名加 wss://www.red-packet.com.cn
   trial: {
     BASE_URL: 'https://www.red-packet.com.cn',
+    IM_WS_URL: 'wss://www.red-packet.com.cn/websocket',
     MOCK_LOGIN: false
   },
   release: {
     BASE_URL: 'https://www.red-packet.com.cn',
+    IM_WS_URL: 'wss://www.red-packet.com.cn/websocket',
     MOCK_LOGIN: false
   }
 }

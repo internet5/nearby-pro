@@ -120,6 +120,63 @@ ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
 
 
 --
+-- Name: chat_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.chat_messages (
+    id bigint NOT NULL DEFAULT nextval('public.chat_messages_id_seq'::regclass),
+    from_user_id bigint NOT NULL,
+    to_user_id bigint NOT NULL,
+    content character varying(1000) DEFAULT ''::character varying NOT NULL,
+    typeu smallint DEFAULT (-1) NOT NULL,
+    fp character varying(64) NOT NULL,
+    status smallint DEFAULT 1 NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT ck_chat_messages_self CHECK ((from_user_id <> to_user_id)),
+    CONSTRAINT ck_chat_messages_status CHECK ((status = ANY (ARRAY[1, 2, 3])))
+);
+
+
+--
+-- Name: TABLE chat_messages; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.chat_messages IS '私聊消息（MobileIMSDK C2C 落库），消息不可变无 updated_at';
+
+--
+-- Name: COLUMN chat_messages typeu; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.chat_messages.typeu IS '消息业务类型（Protocal.typeu 透传）：1=文本，预留扩展';
+
+--
+-- Name: COLUMN chat_messages fp; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.chat_messages.fp IS '消息指纹（Protocal.fp），全局唯一防重发落库';
+
+--
+-- Name: COLUMN chat_messages status; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.chat_messages.status IS '1=已存储 2=接收方已拉取 3=已读';
+
+
+--
+-- Name: chat_messages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.chat_messages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.chat_messages_id_seq OWNED BY public.chat_messages.id;
+
+
+--
 -- Name: feedbacks; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2501,11 +2558,34 @@ SELECT pg_catalog.setval('public.users_id_seq', 10, true);
 
 
 --
+-- Name: chat_messages_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.chat_messages_id_seq', 1, false);
+
+
+--
 -- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.categories
     ADD CONSTRAINT categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: chat_messages chat_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages
+    ADD CONSTRAINT chat_messages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: chat_messages uk_chat_messages_fp; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages
+    ADD CONSTRAINT uk_chat_messages_fp UNIQUE (fp);
 
 
 --
@@ -2562,6 +2642,27 @@ ALTER TABLE ONLY public.users
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: chat_messages_pair_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX chat_messages_pair_idx ON public.chat_messages USING btree (from_user_id, to_user_id, id DESC);
+
+
+--
+-- Name: chat_messages_pair_rev_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX chat_messages_pair_rev_idx ON public.chat_messages USING btree (to_user_id, from_user_id, id DESC);
+
+
+--
+-- Name: chat_messages_to_status_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX chat_messages_to_status_idx ON public.chat_messages USING btree (to_user_id, status);
 
 
 --
@@ -2632,6 +2733,22 @@ CREATE TRIGGER trg_listings_updated_at BEFORE UPDATE ON public.listings FOR EACH
 --
 
 CREATE TRIGGER trg_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+
+--
+-- Name: chat_messages chat_messages_from_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages
+    ADD CONSTRAINT chat_messages_from_user_id_fkey FOREIGN KEY (from_user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: chat_messages chat_messages_to_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages
+    ADD CONSTRAINT chat_messages_to_user_id_fkey FOREIGN KEY (to_user_id) REFERENCES public.users(id);
 
 
 --

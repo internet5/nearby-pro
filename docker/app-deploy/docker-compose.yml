@@ -25,7 +25,11 @@ services:
       WX_MOCK: "true"                              # 上线改 "false"（真实微信登录）
       WX_SECURITY_CHECK: "false"                   # 上线改 "true"（msgSecCheck 内容安全）
       WX_JWT_SECRET: nearby-pro-dev-jwt-secret-0123456789abcdef  # 上线换随机长字符串
+      # IM 网关（MobileIMSDK）：WebSocket 3000 小程序连、TCP 8901 Java Demo 联调
+      IM_ENABLED: "true"                           # 不需要私聊时改 "false"（不启动 Netty 网关）
     ports:
       - "8080:8080"
+      - "3000:3000"   # IM WebSocket：nginx 经 172.17.0.1 转发 wss；云安全组可只对内开放
+      - "8901:8901"   # IM TCP：仅联调用，上线后可关闭映射
     volumes:
       - .:/app:ro    # 挂载本目录（compose 文件所在处）为容器 /app，jar 放本目录即可

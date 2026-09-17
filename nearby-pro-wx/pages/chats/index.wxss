@@ -1,0 +1,144 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx 32rpx calc(48rpx + env(safe-area-inset-bottom));
+  background: var(--bg);
+  box-sizing: border-box;
+}
+
+.empty {
+  margin-top: 32rpx;
+  padding: 72rpx 48rpx;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.empty-icon {
+  width: 104rpx;
+  height: 104rpx;
+  line-height: 100rpx;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 48rpx;
+  margin: 0 auto;
+  border: 2rpx solid var(--primary-line);
+  box-sizing: border-box;
+}
+
+.empty-text {
+  margin-top: 28rpx;
+  font-size: 26rpx;
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+
+/* 分组标题：找我的 / 我发起的 */
+.group-title {
+  margin: 36rpx 4rpx 0;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.group-title + .session {
+  margin-top: 20rpx;
+}
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  margin-top: 24rpx;
+  padding: 28rpx 30rpx;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.session-hover {
+  transform: translateY(2rpx);
+  box-shadow: 0 6rpx 20rpx rgba(26, 23, 20, 0.1);
+}
+
+.avatar {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  border: 2rpx solid var(--primary-line);
+  color: var(--primary);
+  font-size: 36rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
+
+.row1 {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.name {
+  font-size: 30rpx;
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.time {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  color: var(--ink-3);
+}
+
+.row2 {
+  margin-top: 10rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.last {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  flex-shrink: 0;
+  min-width: 34rpx;
+  height: 34rpx;
+  line-height: 34rpx;
+  padding: 0 10rpx;
+  border-radius: 999rpx;
+  background: #E15B4C;
+  color: #FFFFFF;
+  font-size: 20rpx;
+  text-align: center;
+  box-sizing: border-box;
+}

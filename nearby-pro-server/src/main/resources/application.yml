@@ -20,3 +20,11 @@ wx:
   # JWT 签名密钥，生产环境务必在 application-local.yml 里换成随机长串
   jwt-secret: nearby-pro-dev-jwt-secret-0123456789abcdef
   jwt-expire-days: 30
+
+im:
+  # MobileIMSDK 网关开关（本地不需要聊天联调时可改 false）
+  enabled: true
+  # WebSocket 网关端口：小程序端连接（握手路径 /websocket）
+  websocket-port: 3000
+  # TCP 网关端口：官方 Java Demo 联调用
+  tcp-port: 8901

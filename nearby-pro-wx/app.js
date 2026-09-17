@@ -1,5 +1,7 @@
 const { ensureLogin } = require('./utils/request')
 const { loadFromApi } = require('./utils/categories')
+const { refreshChatBadge } = require('./utils/badge')
+const imManager = require('./utils/im/im-manager')
 
 // mock 时代的本地存储 key，接入后端后一次性清掉
 const LEGACY_KEYS = [
@@ -12,8 +14,12 @@ App({
   onLaunch() {
     LEGACY_KEYS.forEach((key) => wx.removeStorageSync(key))
     // 静默登录 + 分类热更新：失败不打扰，接口层会在需要时自动重试登录
-    ensureLogin().catch(() => {})
+    ensureLogin()
+      .then(refreshChatBadge)
+      .catch(() => {})
     loadFromApi().catch(() => {})
+    // 实时收到消息即刷新「消息」tab 角标（连接懒建立，进入聊天相关页后才会生效）
+    imManager.onIncoming(() => refreshChatBadge())
   },
 
   // 热启动经分享卡片进入时 onLoad 不会再触发，把 query 转交给地图页；
@@ -25,6 +31,8 @@ App({
       this._lastEntryQuery = key
       this.globalData.focusListingId = query.listingId
     }
+    // 从后台切回时刷新聊天未读角标
+    refreshChatBadge()
   },
 
   globalData: {

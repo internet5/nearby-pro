@@ -74,6 +74,23 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- MobileIMSDK：即时通讯框架服务端（无中央仓库包，lib/ 本地 jar 经 install-file 安装后引用） -->
+        <dependency>
+            <groupId>com.mobileimsdk</groupId>
+            <artifactId>mobileimsdk-server</artifactId>
+            <version>6.5</version>
+        </dependency>
+        <!-- MobileIMSDK 依赖的 Netty（版本由 Spring Boot 托管） -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+        </dependency>
+        <!-- MobileIMSDK 依赖的 Gson（版本由 Spring Boot 托管） -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -83,6 +100,27 @@
 
     <build>
         <plugins>
+            <!-- 编译前自动把 lib/ 下的 MobileIMSDK 本地 jar 安装进本地仓库（无中央仓库包） -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>install-mobileimsdk-server</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>com.mobileimsdk</groupId>
+                            <artifactId>mobileimsdk-server</artifactId>
+                            <version>6.5</version>
+                            <packaging>jar</packaging>
+                            <file>${project.basedir}/lib/MobileIMSDKServer.jar</file>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

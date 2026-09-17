@@ -1,7 +1,7 @@
 # 数据库设计
 
 引擎：PostgreSQL 14+，启用 PostGIS。  
-原则：第一版只保留用户、分类、发布、举报、收藏、意见反馈六张表。聊天、支付、广告、评价全部不做。
+原则：第一版只保留用户、分类、发布、举报、收藏、意见反馈六张表，外加私聊消息表（chat_messages，接入 MobileIMSDK 后新增）。支付、广告、评价全部不做。
 
 ## ER 关系
 
@@ -13,6 +13,7 @@ listings 1 ── N reports
 users 1 ── N favorites
 listings 1 ── N favorites
 users 1 ── N feedbacks
+users 1 ── N chat_messages（from / to 双向，私聊）
 ```
 
 ## 表说明
@@ -144,6 +145,28 @@ CREATE UNIQUE INDEX favorites_user_listing_uq ON public.favorites USING btree (u
 | user_id | BIGINT | 提交人 |
 | content | VARCHAR(500) | 反馈内容 |
 | created_at | TIMESTAMPTZ | 时间 |
+
+### chat_messages（私聊消息）
+
+MobileIMSDK C2C 消息落库表，消息不可变，无 updated_at。实时转发由 Netty 网关完成，此表只负责离线兜底与历史查询；`fp` 唯一约束防 QoS 重发重复落库。
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGSERIAL | 主键 |
+| from_user_id | BIGINT | 发送人，FK → users |
+| to_user_id | BIGINT | 接收人，FK → users，CHECK(from ≠ to) |
+| content | VARCHAR(1000) | 消息文本 |
+| typeu | SMALLINT | 业务类型（Protocal.typeu 透传），-1 无、1 文本，预留扩展 |
+| fp | VARCHAR(64) | 消息指纹，唯一 |
+| status | SMALLINT | 1 已存储 / 2 接收方已拉取 / 3 已读 |
+| created_at | TIMESTAMPTZ | 时间 |
+
+索引：
+
+- `chat_messages_to_status_idx`：`(to_user_id, status)` 未读数
+- `chat_messages_pair_idx` / `chat_messages_pair_rev_idx`：`(from,to,id DESC)` + 反向，会话历史两条腿
+
+已建库的环境手动执行 `sql/upgrade-202609-chat.sql`（幂等增量脚本）；严禁对线上库执行 `nearby-init.sql`（会 DROP SCHEMA 清库）。
 
 ## 缓存
 

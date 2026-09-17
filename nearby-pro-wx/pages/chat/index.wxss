@@ -1,0 +1,117 @@
+.chat-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg);
+}
+
+.msg-list {
+  flex: 1;
+  min-height: 0;
+  padding: 24rpx 32rpx 0;
+  box-sizing: border-box;
+}
+
+.history-tip {
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 22rpx;
+  color: var(--ink-3);
+}
+
+.time-bar {
+  text-align: center;
+  padding: 20rpx 0 8rpx;
+  font-size: 22rpx;
+  color: var(--ink-3);
+}
+
+.msg {
+  display: flex;
+  margin-top: 20rpx;
+}
+
+.msg-mine {
+  justify-content: flex-end;
+}
+
+.bubble {
+  max-width: 70%;
+  padding: 20rpx 26rpx;
+  border-radius: var(--radius-sm);
+  font-size: 28rpx;
+  line-height: 1.55;
+  word-break: break-all;
+  white-space: pre-wrap;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 4rpx 14rpx rgba(26, 23, 20, 0.05);
+}
+
+.msg-mine .bubble {
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+  border: 1rpx solid var(--primary-line);
+}
+
+/* 发送中降低存在感，失败变灰红提示 */
+.bubble-sending {
+  opacity: 0.65;
+}
+
+.bubble-failed {
+  background: #FBEAEA;
+  color: #C74A3C;
+  border: 1rpx solid #F2D4D0;
+}
+
+.fail-tip {
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: #C74A3C;
+  text-align: right;
+}
+
+.list-bottom-pad {
+  height: 32rpx;
+}
+
+/* 底部输入区：固定在安全区之上 */
+.composer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1rpx solid var(--line);
+}
+
+.composer-input {
+  flex: 1;
+  height: 76rpx;
+  padding: 0 28rpx;
+  background: var(--surface-soft);
+  border: 1rpx solid var(--line);
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.composer-send {
+  flex-shrink: 0;
+  width: 128rpx;
+  height: 76rpx;
+  line-height: 76rpx;
+  text-align: center;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #FFFFFF;
+  background: #C3D4C0;
+}
+
+.send-on {
+  background: linear-gradient(135deg, var(--primary), var(--primary-deep));
+  box-shadow: 0 10rpx 24rpx rgba(62, 110, 79, 0.28);
+}

@@ -4,7 +4,9 @@
     "pages/publish/index",
     "pages/detail/index",
     "pages/mine/index",
-    "pages/feedback/index"
+    "pages/feedback/index",
+    "pages/chats/index",
+    "pages/chat/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -24,6 +26,12 @@
         "text": "附近",
         "iconPath": "assets/tabbar/map.png",
         "selectedIconPath": "assets/tabbar/map-active.png"
+      },
+      {
+        "pagePath": "pages/chats/index",
+        "text": "消息",
+        "iconPath": "assets/tabbar/chat.png",
+        "selectedIconPath": "assets/tabbar/chat-active.png"
       },
       {
         "pagePath": "pages/mine/index",

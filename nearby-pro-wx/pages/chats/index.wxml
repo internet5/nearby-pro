@@ -1,0 +1,46 @@
+<view class="page">
+  <template name="session-item">
+    <view
+      class="session"
+      data-peer-id="{{item.peerId}}"
+      data-nickname="{{item.nickname}}"
+      data-avatar-url="{{item.avatarUrl}}"
+      bindtap="onOpenChat"
+      hover-class="session-hover"
+    >
+      <view class="avatar">
+        <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill" class="avatar-img" />
+        <text wx:else>{{item.nickname ? item.nickname[0] : '友'}}</text>
+      </view>
+      <view class="main">
+        <view class="row1">
+          <view class="name">{{item.nickname || '职人'}}</view>
+          <view class="time">{{item.timeText}}</view>
+        </view>
+        <view class="row2">
+          <view class="last">{{item.lastContent}}</view>
+          <view class="badge" wx:if="{{item.unread > 0}}">{{item.unread > 99 ? '99+' : item.unread}}</view>
+        </view>
+      </view>
+    </view>
+  </template>
+
+  <view class="empty" wx:if="{{!loading && toMe.length === 0 && fromMe.length === 0}}">
+    <view class="empty-icon">💬</view>
+    <view class="empty-text">还没有聊天。在技能详情里点「联系TA」，直接和师傅沟通。</view>
+  </view>
+
+  <block wx:if="{{toMe.length}}">
+    <view class="group-title">找我的</view>
+    <block wx:for="{{toMe}}" wx:key="peerId">
+      <template is="session-item" data="{{item}}" />
+    </block>
+  </block>
+
+  <block wx:if="{{fromMe.length}}">
+    <view class="group-title">我发起的</view>
+    <block wx:for="{{fromMe}}" wx:key="peerId">
+      <template is="session-item" data="{{item}}" />
+    </block>
+  </block>
+</view>

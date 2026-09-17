@@ -1,0 +1,40 @@
+<view class="chat-page">
+  <scroll-view
+    class="msg-list"
+    scroll-y
+    scroll-into-view="{{scrollInto}}"
+    bindscrolltoupper="onScrollUpper"
+    upper-threshold="80"
+  >
+    <view class="history-tip" wx:if="{{loading}}">加载中…</view>
+    <view class="history-tip" wx:elif="{{noMore && messages.length}}">没有更早的消息了</view>
+    <view class="history-tip" wx:elif="{{!loading && messages.length === 0}}">打个招呼吧～</view>
+
+    <block wx:for="{{messages}}" wx:key="fp">
+      <view wx:if="{{item.timeText}}" class="time-bar">{{item.timeText}}</view>
+      <view id="m-{{index}}" class="msg {{item.mine ? 'msg-mine' : ''}}">
+        <view class="bubble {{item.status === 'sending' ? 'bubble-sending' : ''}} {{item.status === 'failed' ? 'bubble-failed' : ''}}">{{item.content}}</view>
+        <view
+          wx:if="{{item.mine && item.status === 'failed'}}"
+          class="fail-tip"
+          data-fp="{{item.fp}}"
+          bindtap="onResend"
+        >未送达，点击重发</view>
+      </view>
+    </block>
+    <view class="list-bottom-pad"></view>
+  </scroll-view>
+
+  <view class="composer">
+    <input
+      class="composer-input"
+      value="{{input}}"
+      placeholder="说点什么…"
+      confirm-type="send"
+      confirm-hold="{{true}}"
+      bindinput="onInput"
+      bindconfirm="onSend"
+    />
+    <view class="composer-send {{input ? 'send-on' : ''}}" bindtap="onSend">发送</view>
+  </view>
+</view>

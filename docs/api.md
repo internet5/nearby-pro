@@ -333,10 +333,22 @@ ORDER BY distance
 LIMIT 200;
 ```
 
+## 14. 私聊（MobileIMSDK）
+
+实时收发走 MobileIMSDK WebSocket 长连接（握手路径 `ws(s)://host:3000/websocket`，登录包 token 用 JWT），REST 只负责拉取类辅助操作，全部需登录：
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/chat/sessions` | 会话列表：`{list:[{peerId,nickname,avatarUrl,lastContent,lastTypeu,lastTime,unread}]}` |
+| GET | `/api/chat/messages?peerId=&cursor=&limit=` | 历史分页：`{list:[{id,from,to,content,typeu,fp,status,createTime}],nextCursor,hasMore}`；副作用把对方发我的 status=1 置 2 |
+| POST | `/api/chat/read` | body `{peerId}`，标记会话已读（status<3 置 3） |
+| GET | `/api/chat/unread` | `{total}` 未读总数（「我的」页角标） |
+
+消息状态：1=已存储 2=接收方已拉取 3=已读。离线消息不做服务端推送，由客户端上线后拉历史兜底；fp 全局唯一防 QoS 重发重复落库。
+
 ## 明确不做（MVP）
 
 - 支付 / 会员年费
-- 即时通讯
 - 广告位
 - 评价与订单
 - 管理后台（违规先靠举报 + 手工改库）

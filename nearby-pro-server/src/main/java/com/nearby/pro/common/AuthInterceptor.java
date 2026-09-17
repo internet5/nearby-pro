@@ -29,7 +29,9 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
         boolean isGet = "GET".equalsIgnoreCase(request.getMethod());
         boolean isMine = request.getRequestURI().endsWith("/mine");
-        if (isGet && !isMine) {
+        // 聊天接口涉及隐私，全方法强制登录，不走游客放行
+        boolean isChat = request.getRequestURI().startsWith("/api/chat/");
+        if (isGet && !isMine && !isChat) {
             return true;
         }
         throw new ApiException("请先登录");

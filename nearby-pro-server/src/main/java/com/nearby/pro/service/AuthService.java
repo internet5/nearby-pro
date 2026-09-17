@@ -52,11 +52,19 @@ public class AuthService {
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             return null;
         }
+        return verifyToken(authorization.substring("Bearer ".length()));
+    }
+
+    /** 校验裸 JWT，合法返回 userId，否则返回 null（供 IM 登录验证等非 HTTP 场景复用） */
+    public Long verifyToken(String token) {
+        if (token == null || token.isBlank()) {
+            return null;
+        }
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(key())
                     .build()
-                    .parseSignedClaims(authorization.substring("Bearer ".length()))
+                    .parseSignedClaims(token)
                     .getPayload();
             return Long.valueOf(claims.getSubject());
         } catch (Exception e) {

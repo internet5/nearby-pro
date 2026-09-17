@@ -89,6 +89,21 @@ Page({
     })
   },
 
+  // 联系TA：进入私聊页（懒连接，进聊天页才与 IM 网关握手）
+  onChat() {
+    const item = this.data.item
+    if (!item || !item.userId) return
+    wx.navigateTo({
+      url:
+        '/pages/chat/index?peerId=' +
+        item.userId +
+        '&nickname=' +
+        encodeURIComponent(item.nickname || '') +
+        '&avatarUrl=' +
+        encodeURIComponent(item.avatarUrl || '')
+    })
+  },
+
   // 收藏 / 取消收藏：按当前收藏态切换，成功后翻转星标
   onFavorite() {
     const item = this.data.item

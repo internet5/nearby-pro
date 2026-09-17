@@ -87,6 +87,35 @@ function favoriteList() {
   return ensureLogin().then(() => request({ url: '/api/favorites' }))
 }
 
+// ---- 私聊（REST 辅助；实时收发走 utils/im/ 的 WebSocket 长连接）----
+
+/** 会话列表：[{peerId,nickname,avatarUrl,lastContent,lastTypeu,lastTime,unread}] */
+function chatSessions() {
+  return ensureLogin().then(() => request({ url: '/api/chat/sessions' }))
+}
+
+/** 聊天历史：peerId 对方用户 id；cursor 首页传 0；副作用把对方发我的 status=1 置 2 */
+function chatMessages(peerId, cursor, limit) {
+  return ensureLogin().then(() =>
+    request({
+      url: '/api/chat/messages',
+      data: { peerId, cursor: cursor || 0, limit: limit || 20 }
+    })
+  )
+}
+
+/** 标记会话已读 */
+function chatMarkRead(peerId) {
+  return ensureLogin().then(() =>
+    request({ url: '/api/chat/read', method: 'POST', data: { peerId } })
+  )
+}
+
+/** 未读总数（「我的」页角标） */
+function chatUnread() {
+  return ensureLogin().then(() => request({ url: '/api/chat/unread' }))
+}
+
 module.exports = {
   loadCategories,
   nearby,
@@ -101,5 +130,9 @@ module.exports = {
   addFeedback,
   addFavorite,
   removeFavorite,
-  favoriteList
+  favoriteList,
+  chatSessions,
+  chatMessages,
+  chatMarkRead,
+  chatUnread
 }

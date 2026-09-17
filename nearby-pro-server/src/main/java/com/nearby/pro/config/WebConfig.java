@@ -15,7 +15,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor)
-                .addPathPatterns("/api/listings/**", "/api/feedbacks/**", "/api/favorites/**")
+                .addPathPatterns("/api/listings/**", "/api/feedbacks/**", "/api/favorites/**", "/api/chat/**")
                 // 附近列表免登录
                 .excludePathPatterns("/api/listings/nearby");
     }
