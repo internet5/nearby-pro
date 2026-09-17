@@ -1,0 +1,8 @@
+{
+  "name": "nearby-pro-wx",
+  "version": "1.0.0",
+  "description": "附近职人小程序（npm 依赖仅供开发者工具「构建 npm」使用）",
+  "dependencies": {
+    "@babel/runtime": "^7.24.0"
+  }
+}

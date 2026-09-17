@@ -68,15 +68,23 @@ Page({
   noopPrompt() {},
 
   loadLocationThenListings() {
-    wx.getLocation({
+    // 模糊定位（约 5km 精度）：官方对「搜附近」类场景的推荐接口，审核门槛低。
+    // 注意 requiredPrivateInfos 中与 wx.getLocation 互斥，只能二选一；
+    // 将来需要米级精确距离时再切回 getLocation（需先通过微信接口权限申请）
+    wx.getFuzzyLocation({
       type: 'gcj02',
       success: (res) => {
         const center = { latitude: res.latitude, longitude: res.longitude }
+        //console.log('getFuzzyLocation success:', center)
+        //let center = {latitude: 30.57447, longitude: 103.92377};
         getApp().globalData.location = center
         this.setData({ latitude: center.latitude, longitude: center.longitude })
         this.refreshListings(center)
       },
-      fail: () => {
+      fail: (err) => {
+        // 常见失败原因：开发者工具不支持 getFuzzyLocation（需真机预览）、
+        // mp 后台「接口设置」未开通该接口、用户拒绝授权
+        console.error('getFuzzyLocation fail:', err && err.errMsg)
         wx.showToast({ title: '定位失败，显示示例位置', icon: 'none' })
         this.refreshListings(DEFAULT_CENTER)
       }

@@ -36,10 +36,14 @@
   "permission": {
     "scope.userLocation": {
       "desc": "你的位置将用于查找附近的自由职业者"
+    },
+    "scope.userFuzzyLocation": {
+      "desc": "你的位置将用于查找附近的自由职业者"
     }
   },
-  "requiredPrivateInfos": ["getLocation", "chooseLocation"],
+  "requiredPrivateInfos": ["getFuzzyLocation", "chooseLocation"],
   "style": "v2",
   "sitemapLocation": "sitemap.json",
-  "renderer": "webview"
+  "renderer": "webview",
+  "lazyCodeLoading": "requiredComponents"
 }

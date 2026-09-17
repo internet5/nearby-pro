@@ -16,7 +16,7 @@ const CONFIG = {
   // 体验版 / 正式版：连线上后端。前置：后端 WX_MOCK=false、域名备案通过、
   // mp 后台配好 request 合法域名（体验版同样强制校验合法域名，不能用 IP 或 http）
   trial: {
-    BASE_URL: 'https://red-packet.com.cn',
+    BASE_URL: 'https://www.red-packet.com.cn',
     MOCK_LOGIN: false
   },
   release: {
