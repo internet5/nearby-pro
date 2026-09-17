@@ -12,10 +12,12 @@ import com.nearby.pro.dto.NearbyRow;
 import com.nearby.pro.dto.ReportReq;
 import com.nearby.pro.dto.TagDef;
 import com.nearby.pro.entity.Category;
+import com.nearby.pro.entity.Favorite;
 import com.nearby.pro.entity.Listing;
 import com.nearby.pro.entity.Report;
 import com.nearby.pro.entity.User;
 import com.nearby.pro.mapper.CategoryMapper;
+import com.nearby.pro.mapper.FavoriteMapper;
 import com.nearby.pro.mapper.ListingMapper;
 import com.nearby.pro.mapper.ReportMapper;
 import com.nearby.pro.mapper.UserMapper;
@@ -48,6 +50,7 @@ public class ListingService {
     private final CategoryMapper categoryMapper;
     private final UserMapper userMapper;
     private final ReportMapper reportMapper;
+    private final FavoriteMapper favoriteMapper;
     private final WxService wxService;
     private final StringRedisTemplate redis;
 
@@ -110,10 +113,11 @@ public class ListingService {
         listingMapper.updateById(listing);
     }
 
-    /** 删除：仅作者，物理删除；先清关联举报，避免外键约束删除失败 */
+    /** 删除：仅作者，物理删除；先清关联举报与收藏，避免残留指向已删除发布的记录 */
     public void delete(long userId, long id) {
         requireOwned(userId, id);
         reportMapper.delete(new LambdaQueryWrapper<Report>().eq(Report::getListingId, id));
+        favoriteMapper.delete(new LambdaQueryWrapper<Favorite>().eq(Favorite::getListingId, id));
         listingMapper.deleteById(id);
     }
 
@@ -211,6 +215,13 @@ public class ListingService {
         detail.setViewCount(listing.getViewCount());
         detail.setCreateTime(listing.getCreatedAt());
         detail.setIsOwner(owner);
+        // 登录用户回填收藏态，详情页星标按钮用
+        if (viewerId != null) {
+            Long favored = favoriteMapper.selectCount(new LambdaQueryWrapper<Favorite>()
+                    .eq(Favorite::getUserId, viewerId)
+                    .eq(Favorite::getListingId, id));
+            detail.setIsFavorited(favored != null && favored > 0);
+        }
         return detail;
     }
 

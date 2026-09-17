@@ -1,7 +1,7 @@
 const api = require('../../utils/api')
 const { getUserInfo } = require('../../utils/request')
 const { joinList, flattenItems } = require('../../utils/categories')
-const { openDetail } = require('../../utils/listings')
+const { openDetail, focusOnMap } = require('../../utils/listings')
 
 const STATUS_TEXT = {
   1: '上架中',
@@ -12,13 +12,25 @@ const STATUS_TEXT = {
 
 Page({
   data: {
+    tab: 'publish',   // publish=我的发布 favorite=我的收藏
     list: [],
+    favorites: [],
     user: null
   },
 
   onShow() {
     this.setData({ user: getUserInfo() })
-    this.loadList()
+    // 收藏会在详情页变动，每次进入按当前 tab 刷新
+    if (this.data.tab === 'favorite') this.loadFavorites()
+    else this.loadList()
+  },
+
+  onTab(e) {
+    const tab = e.currentTarget.dataset.tab
+    if (tab === this.data.tab) return
+    this.setData({ tab })
+    if (tab === 'favorite') this.loadFavorites()
+    else this.loadList()
   },
 
   loadList() {
@@ -37,8 +49,38 @@ Page({
       .catch(() => {})
   },
 
+  loadFavorites() {
+    api
+      .favoriteList()
+      .then((data) => {
+        // 收藏接口不返回 tagText/itemText，渲染前派生
+        const favorites = (data.list || []).map((item) => ({
+          ...item,
+          tagText: joinList(item.tags),
+          itemText: joinList(flattenItems(item.items))
+        }))
+        this.setData({ favorites })
+      })
+      .catch(() => {})
+  },
+
   onOpen(e) {
     openDetail(e.currentTarget.dataset.listingId)
+  },
+
+  // 收藏卡片「看位置」：跳地图页聚焦该技能（与转发落地同一链路）
+  onLocateOnMap(e) {
+    focusOnMap(Number(e.currentTarget.dataset.listingId))
+  },
+
+  onUnfavorite(e) {
+    api
+      .removeFavorite(Number(e.currentTarget.dataset.listingId))
+      .then(() => {
+        wx.showToast({ title: '已取消收藏', icon: 'none' })
+        this.loadFavorites()
+      })
+      .catch(() => {})
   },
 
   onOffline(e) {
@@ -95,12 +137,12 @@ Page({
   noop() {},
 
   onShareAppMessage(res) {
-    // 列表里点某条发布的「分享」按钮，带上这条技能的信息
-    if (res && res.from === 'button' && res.target && res.target.dataset.title) {
+    // 列表里点某条发布的「分享」按钮，带上这条技能的信息；落地地图并聚焦该技能
+    if (res && res.from === 'button' && res.target && res.target.dataset.listingId) {
       const d = res.target.dataset
       return {
         title: `「${d.title}」｜${d.category}师傅就在附近`,
-        path: '/pages/map/index'
+        path: `/pages/map/index?listingId=${d.listingId}`
       }
     }
     return {

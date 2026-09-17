@@ -151,6 +151,12 @@
   color: var(--ink-3);
 }
 
+/* 已收藏态：主色高亮星标 */
+.link-on {
+  color: var(--primary-deep);
+  font-weight: 600;
+}
+
 .actions {
   position: fixed;
   left: 0;

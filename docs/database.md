@@ -1,7 +1,7 @@
 # 数据库设计
 
 引擎：PostgreSQL 14+，启用 PostGIS。  
-原则：第一版只保留用户、分类、发布、举报、意见反馈五张表。聊天、支付、广告、评价全部不做。
+原则：第一版只保留用户、分类、发布、举报、收藏、意见反馈六张表。聊天、支付、广告、评价全部不做。
 
 ## ER 关系
 
@@ -10,6 +10,8 @@ users 1 ── N listings
 categories 1 ── N listings
 users 1 ── N reports
 listings 1 ── N reports
+users 1 ── N favorites
+listings 1 ── N favorites
 users 1 ── N feedbacks
 ```
 
@@ -91,6 +93,46 @@ users 1 ── N feedbacks
 | created_at | TIMESTAMPTZ | 时间 |
 
 同一用户对同一条发布 24 小时内只能举报一次，用 Redis `SETNX`（key `report:{userId}:{listingId}`，TTL 24h）限频；Redis 不可用时退化为查库判断。
+
+### favorites（收藏）
+
+用户对感兴趣技能的收藏，方便下次找到。`(user_id, listing_id)` 唯一，重复收藏幂等；列表查询只返回仍在上架中的发布。
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGSERIAL | 主键 |
+| user_id | BIGINT | 收藏人 |
+| listing_id | BIGINT | 被收藏发布 |
+| created_at | TIMESTAMPTZ | 时间 |
+
+索引：
+
+- `favorites_user_listing_uq`：`(user_id, listing_id)` 唯一索引
+
+发布被物理删除时同步清理对应收藏（服务层处理）。
+
+**已建库的环境手动执行以下升级段：**
+
+```sql
+CREATE TABLE public.favorites (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    listing_id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE SEQUENCE public.favorites_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.favorites_id_seq OWNED BY public.favorites.id;
+ALTER TABLE ONLY public.favorites ALTER COLUMN id SET DEFAULT nextval('public.favorites_id_seq'::regclass);
+ALTER TABLE ONLY public.favorites ADD CONSTRAINT favorites_pkey PRIMARY KEY (id);
+CREATE UNIQUE INDEX favorites_user_listing_uq ON public.favorites USING btree (user_id, listing_id);
+```
 
 ### feedbacks（意见与建议）
 

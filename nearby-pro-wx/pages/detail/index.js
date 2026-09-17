@@ -89,12 +89,27 @@ Page({
     })
   },
 
+  // 收藏 / 取消收藏：按当前收藏态切换，成功后翻转星标
+  onFavorite() {
+    const item = this.data.item
+    if (!item) return
+    const favorited = !!item.isFavorited
+    const call = favorited ? api.removeFavorite(item.id) : api.addFavorite(item.id)
+    call
+      .then(() => {
+        this.setData({ 'item.isFavorited': !favorited })
+        wx.showToast({ title: favorited ? '已取消收藏' : '已收藏，可在「我的」页查看', icon: 'none' })
+      })
+      .catch(() => {})
+  },
+
   onShareAppMessage() {
     const item = this.data.item
     if (item) {
       return {
         title: `「${item.title}」｜${item.categoryName}师傅就在附近`,
-        path: `/pages/detail/index?id=${item.id}`
+        // 落地到地图并聚焦这条技能，等价于在地图上点了它
+        path: `/pages/map/index?listingId=${item.id}`
       }
     }
     return {

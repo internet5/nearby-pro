@@ -5,7 +5,7 @@
 
 | 免登录 | 可选登录 | 必须登录 |
 |--------|----------|----------|
-| wxLogin / categories / nearby | 详情（`isOwner` 判断） | 发布 / 更新 / 下架 / 重新上架 / 删除 / 我的发布 / 举报 / 反馈 |
+| wxLogin / categories / nearby | 详情（`isOwner` / `isFavorited` 判断） | 发布 / 更新 / 下架 / 重新上架 / 删除 / 我的发布 / 举报 / 反馈 / 收藏 |
 
 统一响应：
 
@@ -158,12 +158,13 @@ const requestParams = {
     "expireTime": "2026-09-19T10:00:00",
     "viewCount": 18,
     "createTime": "2026-08-20T10:00:00",
-    "isOwner": false
+    "isOwner": false,
+    "isFavorited": false
   }
 }
 ```
 
-`isOwner` 用于详情页展示「下架」，以及区分「我发布的」。
+`isOwner` 用于详情页展示「下架」，以及区分「我发布的」。`isFavorited` 仅登录用户有意义，详情页收藏星标用。
 
 ## 5. 发布技能
 
@@ -271,6 +272,38 @@ const requestData = {
 ```javascript
 const requestData = {
   content: '希望能加一个搬家分类'   // 1~500 字
+}
+```
+
+## 13. 收藏
+
+**收藏**：`POST /api/favorites/{listingId}`  
+**取消收藏**：`DELETE /api/favorites/{listingId}`  
+均需登录。仅上架中的发布可收藏；重复收藏幂等，取消不存在的收藏静默成功。
+
+**我的收藏**：`GET /api/favorites`  
+需要登录。按收藏时间倒序最多 100 条，只返回仍在上架中的（下架/过期的收藏自然消失）。坐标带上，供「看位置」跳地图聚焦。
+
+```json
+{
+  "success": true,
+  "data": {
+    "list": [
+      {
+        "id": 2001,
+        "categoryId": 2,
+        "categoryCode": "repair",
+        "categoryName": "维修安装",
+        "tags": ["水电维修"],
+        "items": [{ "tag": "水电维修", "names": ["电路跳闸"] }],
+        "title": "上门水电维修",
+        "address": "天府广场附近",
+        "latitude": 30.65912,
+        "longitude": 104.06801
+      }
+    ],
+    "total": 1
+  }
 }
 ```
 
