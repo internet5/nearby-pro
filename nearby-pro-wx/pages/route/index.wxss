@@ -1,0 +1,60 @@
+.route-page {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.route-map {
+  width: 100%;
+  height: 100%;
+}
+
+.route-bar {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: calc(24rpx + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 28rpx 32rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
+  box-sizing: border-box;
+}
+
+.route-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.route-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.route-meta {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--primary-deep);
+}
+
+.route-address {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+  color: var(--ink-3);
+}
+
+.route-nav {
+  flex-shrink: 0;
+  padding: 22rpx 44rpx;
+  border-radius: 999rpx;
+  color: #FFFFFF;
+  font-size: 28rpx;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--primary), var(--primary-deep));
+  box-shadow: 0 8rpx 20rpx rgba(62, 110, 79, 0.28);
+}

@@ -33,18 +33,19 @@ public class ChatController {
                 .build());
     }
 
-    /** 会话历史分页：cursor 为上一页最小消息 id，首页不传；副作用把对方发我的消息置为已拉取 */
+    /** 会话历史分页：cursor 为上一页最小消息 id，首页不传；listingId 为空查未挂技能的旧会话；副作用把对方发我的消息置为已拉取 */
     @GetMapping("/api/chat/messages")
     public ApiResult<ChatHistoryResp> messages(@RequestParam long peerId,
+                                               @RequestParam(required = false) Long listingId,
                                                @RequestParam(required = false) Long cursor,
                                                @RequestParam(defaultValue = "20") int limit) {
-        return ApiResult.ok(chatService.history(UserContext.require(), peerId, cursor, limit));
+        return ApiResult.ok(chatService.history(UserContext.require(), peerId, listingId, cursor, limit));
     }
 
-    /** 标记会话已读（进入/离开聊天页时上报） */
+    /** 标记会话已读（进入/离开聊天页时上报）；listingId 为空标记未挂技能的旧会话 */
     @PostMapping("/api/chat/read")
     public ApiResult<Void> read(@Valid @RequestBody ChatReadReq req) {
-        chatService.markRead(UserContext.require(), req.getPeerId());
+        chatService.markRead(UserContext.require(), req.getPeerId(), req.getListingId());
         return ApiResult.ok();
     }
 

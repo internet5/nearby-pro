@@ -1,7 +1,8 @@
 const api = require('../../utils/api')
 const { getUserInfo } = require('../../utils/request')
-const { joinList, flattenItems } = require('../../utils/categories')
+const { joinList } = require('../../utils/categories')
 const { openDetail, focusOnMap } = require('../../utils/listings')
+const { skillCard } = require('../../utils/share')
 
 const STATUS_TEXT = {
   1: '上架中',
@@ -37,11 +38,10 @@ Page({
     api
       .mineList()
       .then((data) => {
-        // mine 接口不返回 tagText/itemText，渲染前派生
+        // mine 接口不返回 tagText，渲染前派生
         const list = (data.list || []).map((item) => ({
           ...item,
           tagText: joinList(item.tags),
-          itemText: joinList(flattenItems(item.items)),
           statusText: STATUS_TEXT[item.status] || '未知'
         }))
         this.setData({ list })
@@ -53,11 +53,10 @@ Page({
     api
       .favoriteList()
       .then((data) => {
-        // 收藏接口不返回 tagText/itemText，渲染前派生
+        // 收藏接口不返回 tagText，渲染前派生
         const favorites = (data.list || []).map((item) => ({
           ...item,
-          tagText: joinList(item.tags),
-          itemText: joinList(flattenItems(item.items))
+          tagText: joinList(item.tags)
         }))
         this.setData({ favorites })
       })
@@ -125,10 +124,6 @@ Page({
     })
   },
 
-  onPublish() {
-    wx.navigateTo({ url: '/pages/publish/index' })
-  },
-
   onFeedback() {
     wx.navigateTo({ url: '/pages/feedback/index' })
   },
@@ -140,10 +135,12 @@ Page({
     // 列表里点某条发布的「分享」按钮，带上这条技能的信息；落地地图并聚焦该技能
     if (res && res.from === 'button' && res.target && res.target.dataset.listingId) {
       const d = res.target.dataset
-      return {
-        title: `「${d.title}」｜${d.category}师傅就在附近`,
-        path: `/pages/map/index?listingId=${d.listingId}`
-      }
+      return skillCard({
+        id: d.listingId,
+        title: d.title,
+        // 封面用第一张图；photoUrls 由 MineItem 提供，经 data-photo 传进来
+        cover: d.photo
+      })
     }
     return {
       title: '找附近的手艺人，上附近职人',

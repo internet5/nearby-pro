@@ -78,12 +78,13 @@ function ensureConnected() {
 
 // 发送文本消息：返回 Promise<{fp, ok}>——ok=true 表示收到回执确认；
 // ok=false 表示重试耗尽（消息可能实际已送达，fp 唯一约束保证不重复落库）。
-// fp 可选：页面预生成指纹以便发送前就把气泡与回执绑定；缺省自动生成
-function sendText(peerId, text, fp) {
+// fp 可选：页面预生成指纹以便发送前就把气泡与回执绑定；缺省自动生成。
+// listingId 可选：技能会话上下文（打进信封 lid 字段，0 = 无技能的普通会话）
+function sendText(peerId, text, fp, listingId) {
   return ensureConnected().then(function (userId) {
     return new Promise(function (resolve) {
       var useFp = fp || protocal.genFp()
-      var frame = protocal.buildSendText(userId, peerId, text, useFp)
+      var frame = protocal.buildSendText(userId, peerId, text, useFp, listingId)
       imClient.sendQos(
         frame,
         useFp,
@@ -98,9 +99,17 @@ function sendText(peerId, text, fp) {
   })
 }
 
-// 收消息路由：在当前聊天页则直接回调页面，同时广播全局通知
+// 收消息路由：拆技能信封后，在当前聊天页（按对方+技能定位）则直接回调页面，同时广播全局通知
 function handleIncoming(msg) {
-  if (currentChat && currentChat.peerId === String(msg.from)) {
+  var env = protocal.parseEnvelope(msg.content)
+  msg.content = env ? env.content : msg.content
+  msg.listingId = env ? env.lid : 0
+  msg.isAuto = env ? env.auto : false
+  if (
+    currentChat &&
+    currentChat.peerId === String(msg.from) &&
+    Number(currentChat.listingId || 0) === Number(msg.listingId || 0)
+  ) {
     try {
       currentChat.onMessage(msg)
     } catch (e) {
@@ -110,9 +119,9 @@ function handleIncoming(msg) {
   fireIncoming(msg)
 }
 
-// 聊天页进入时注册（peerId 为对方用户 id）
-function setCurrentChat(peerId, onMessage) {
-  currentChat = { peerId: String(peerId), onMessage: onMessage }
+// 聊天页进入时注册（peerId 为对方用户 id；listingId 限定技能会话，0 = 无技能会话）
+function setCurrentChat(peerId, onMessage, listingId) {
+  currentChat = { peerId: String(peerId), listingId: Number(listingId || 0), onMessage: onMessage }
 }
 
 // 离开聊天页时注销

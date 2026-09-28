@@ -18,13 +18,15 @@ services:
     entrypoint: ["sh", "-c", "java -jar /app/*.jar"]
     environment:
       TZ: Asia/Shanghai
+      # 激活生产 profile（application-prod.yml：真实微信登录 + msgSecCheck，密钥在 jar 内该文件）
+      SPRING_PROFILES_ACTIVE: prod
       # 中间件与本项目不在同一 compose 网络，经宿主机端口访问（172.17.0.1 = docker0 网桥宿主机地址）
       SPRING_DATASOURCE_URL: jdbc:postgresql://172.17.0.1:5432/nearby_pro?stringtype=unspecified
       REDIS_HOST: 172.17.0.1
-      # —— 以下三项上线前必须调整 ——
-      WX_MOCK: "true"                              # 上线改 "false"（真实微信登录）
-      WX_SECURITY_CHECK: "false"                   # 上线改 "true"（msgSecCheck 内容安全）
-      WX_JWT_SECRET: nearby-pro-dev-jwt-secret-0123456789abcdef  # 上线换随机长字符串
+      # JWT 签名密钥：务必保持随机长串，与 application.yml 的 dev 默认值不同
+      WX_JWT_SECRET: nearby-pro-dev-jwt-secret-0123456789abcdef
+      # 聊天离线提醒的订阅消息模板 id（与小程序 config.js 的 SUBSCRIBE_TMPL_ID 一致）
+      WX_SUBSCRIBE_TEMPLATE_ID: "0fA2jnuqS0NcYNtvPjFYugBtz3lg0J-PVAdZA07hpNU"
       # IM 网关（MobileIMSDK）：WebSocket 3000 小程序连、TCP 8901 Java Demo 联调
       IM_ENABLED: "true"                           # 不需要私聊时改 "false"（不启动 Netty 网关）
     ports:

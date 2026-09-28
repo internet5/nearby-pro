@@ -1,0 +1,19 @@
+<view class="route-page">
+  <map
+    class="route-map"
+    latitude="{{latitude}}"
+    longitude="{{longitude}}"
+    scale="{{scale}}"
+    markers="{{markers}}"
+    polyline="{{polylines}}"
+    include-points="{{includePoints}}"
+  />
+  <view class="route-bar">
+    <view class="route-info">
+      <view class="route-title">{{title}}</view>
+      <view class="route-meta" wx:if="{{distanceText}}">步行约 {{distanceText}}<text wx:if="{{durationText}}"> · {{durationText}}</text></view>
+      <view class="route-address">{{address || '地图标记位置'}}</view>
+    </view>
+    <view class="route-nav" bindtap="onNav">导航</view>
+  </view>
+</view>

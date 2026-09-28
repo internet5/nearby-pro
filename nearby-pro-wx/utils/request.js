@@ -1,8 +1,7 @@
-const { BASE_URL, MOCK_LOGIN } = require('./config')
+const { BASE_URL } = require('./config')
 
 const TOKEN_KEY = 'nearby_pro_token'
 const USER_KEY = 'nearby_pro_user'
-const DEVICE_KEY = 'nearby_pro_device_id'
 
 // 进行中的登录 Promise：防止并发请求同时触发多次登录
 let pendingLogin = null
@@ -19,16 +18,8 @@ function clearAuth() {
   wx.removeStorageSync(TOKEN_KEY)
 }
 
-// 登录凭证：联调模式用本机持久 ID（保证后端 mock openid 稳定），正式模式用 wx.login 的 code
+// 登录凭证：wx.login 的一次性 code，交由后端 code2session 换 openid
 function getLoginCode() {
-  if (MOCK_LOGIN) {
-    let deviceId = wx.getStorageSync(DEVICE_KEY)
-    if (!deviceId) {
-      deviceId = 'dev-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10)
-      wx.setStorageSync(DEVICE_KEY, deviceId)
-    }
-    return Promise.resolve(deviceId)
-  }
   return new Promise((resolve, reject) => {
     wx.login({
       success: (res) => (res.code ? resolve(res.code) : reject(new Error('wx.login 未返回 code'))),

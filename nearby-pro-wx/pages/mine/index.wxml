@@ -32,7 +32,7 @@
         <view class="status status-{{item.status}}">{{item.statusText}}</view>
       </view>
       <view class="cat-line">{{item.categoryName}}{{item.tagText ? ' · ' + item.tagText : ''}}</view>
-      <view class="sub">{{item.itemText ? item.itemText + ' · ' : ''}}{{item.address || '未填写地址'}} · {{item.viewCount || 0}} 次浏览</view>
+      <view class="sub">{{item.address || '未填写地址'}} · {{item.viewCount || 0}} 次浏览</view>
       <view class="card-foot">
         <block wx:if="{{item.status === 1}}">
           <view class="act act-line" data-listing-id="{{item.id}}" catchtap="onEdit">编辑</view>
@@ -42,6 +42,7 @@
             data-listing-id="{{item.id}}"
             data-title="{{item.title}}"
             data-category="{{item.categoryName}}"
+            data-photo="{{item.photoUrls[0]}}"
             catchtap="noop"
           >转发</button>
           <view class="act act-line" data-listing-id="{{item.id}}" catchtap="onOffline">下架</view>
@@ -84,6 +85,11 @@
     </view>
   </block>
 
-  <view class="publish" bindtap="onPublish">发布技能</view>
-  <view class="feedback-link" bindtap="onFeedback">意见与建议</view>
+  <view class="feedback-link" bindtap="onFeedback" hover-class="feedback-hover">
+    <view class="feedback-main">
+      <view class="feedback-title">意见与建议</view>
+      <view class="feedback-sub">用得不顺手？想加功能？告诉我们，你的反馈很重要</view>
+    </view>
+    <view class="feedback-arrow">›</view>
+  </view>
 </view>

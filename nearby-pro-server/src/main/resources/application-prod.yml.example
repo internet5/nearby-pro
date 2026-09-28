@@ -19,3 +19,19 @@ spring:
         pool:
           max-active: 200
           max-idle: 50
+
+# 腾讯云 COS：与红包项目共用密钥与桶，图片传 nearby/image/ 前缀
+tencent:
+  cos:
+    secret-id: ${TENCENT_SECRET_ID:请改成腾讯云密钥}
+    secret-key: ${TENCENT_SECRET_KEY:请改成腾讯云密钥}
+    bucket: ${TENCENT_COS_BUCKET:red-packet-1254310674}
+    region: ${TENCENT_COS_REGION:ap-chengdu}
+    base-url: ${TENCENT_COS_BASE_URL:https://red-packet-1254310674.cos.ap-chengdu.myqcloud.com}
+
+# 微信小程序：真实接口（登录换 code、msgSecCheck 内容安全、订阅消息）
+# AppSecret 在 mp.weixin.qq.com「开发管理-开发设置」获取，只配在生产，不进 git
+wx:
+  security-check: true
+  app-id: ${WX_APPID:请改成小程序appid}
+  secret: ${WX_SECRET:请改成小程序AppSecret}

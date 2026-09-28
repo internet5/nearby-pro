@@ -3,7 +3,6 @@ package com.nearby.pro.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.nearby.pro.common.ApiException;
 import com.nearby.pro.common.JsonUtil;
-import com.nearby.pro.dto.ItemGroup;
 import com.nearby.pro.dto.ListingDetail;
 import com.nearby.pro.dto.ListingSaveReq;
 import com.nearby.pro.dto.MineItem;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -123,25 +121,24 @@ public class ListingService {
 
     // ---- 查询 ----
 
-    /** 每个分类在配额模式下的最大返回条数：6 个分类 × 40 = 最多 240 条，控制带宽与渲染量 */
-    private static final int QUOTA_PER_CATEGORY = 40;
+    /** 每个分类在配额模式下的最大返回条数：10 个分类 × 30 = 最多 300 条，控制带宽与渲染量 */
+    private static final int QUOTA_PER_CATEGORY = 30;
 
     /**
-     * 附近发布：radius 默认 3000 米，最大 10000。
-     * 不带筛选参数（地图页主拉取）→ 配额模式：半径内每分类各取最近 40 条，保证切分类时前端有数据可筛。
-     * 带任一筛选参数 → 精确模式：筛选项参与的半径内按距离升序最多 200 条。
+     * 附近发布：radius 默认 3000 米，最大 20000。
+     * 不带筛选参数（地图页「全部分类」主拉取）→ 配额模式：半径内每分类各取最近 20 条。
+     * 带任一筛选参数（切一级分类重新请求）→ 精确模式：筛选项参与的半径内按距离升序最多 300 条。
      */
     public List<NearbyItem> nearby(double latitude, double longitude, Integer radius,
-                                   Integer categoryId, String tag, String itemName, String keyword) {
-        double effectiveRadius = radius == null || radius <= 0 ? 3000 : Math.min(radius, 10000);
+                                   Integer categoryId, String tag, String keyword) {
+        double effectiveRadius = radius == null || radius <= 0 ? 3000 : Math.min(radius, 20000);
         boolean filtered = categoryId != null && categoryId != 0
                 || !trimToEmpty(tag).isEmpty()
-                || !trimToEmpty(itemName).isEmpty()
                 || !trimToEmpty(keyword).isEmpty();
         List<NearbyRow> rows = filtered
                 ? listingMapper.selectNearby(latitude, longitude, effectiveRadius,
                         categoryId == null ? 0 : categoryId,
-                        trimToEmpty(tag), trimToEmpty(itemName), trimToEmpty(keyword))
+                        trimToEmpty(tag), trimToEmpty(keyword))
                 : listingMapper.selectNearbyQuota(latitude, longitude, effectiveRadius, QUOTA_PER_CATEGORY);
         return rows.stream().map(row -> {
             NearbyItem item = new NearbyItem();
@@ -153,7 +150,6 @@ public class ListingService {
             item.setCategoryCode(row.getCategoryCode());
             item.setCategoryName(row.getCategoryName());
             item.setTags(JsonUtil.parseList(row.getTags(), String.class));
-            item.setItems(JsonUtil.parseList(row.getItems(), ItemGroup.class));
             item.setTitle(row.getTitle());
             item.setLatitude(row.getLatitude());
             item.setLongitude(row.getLongitude());
@@ -162,6 +158,25 @@ public class ListingService {
             item.setExpireTime(row.getExpireTime());
             return item;
         }).toList();
+    }
+
+    /** 附近接口限流：每 IP 每 60 秒最多 6 次；Redis 不可用时放行（同举报限频的降级策略） */
+    public void rateLimitNearby(String clientIp) {
+        String key = "ratelimit:nearby:" + trimToEmpty(clientIp);
+        try {
+            Long count = redis.opsForValue().increment(key);
+            if (count != null && count == 1) {
+                // 仅首次设置过期，避免后续请求不断续期
+                redis.expire(key, Duration.ofSeconds(60));
+            }
+            if (count != null && count > 6) {
+                throw new ApiException("请求过于频繁，请稍后再试");
+            }
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("Redis nearby 限流失败，放行：{}", e.getMessage());
+        }
     }
 
     /** 发布详情：游客可看上架中的；非作者访问有效发布时浏览数 +1 */
@@ -197,10 +212,10 @@ public class ListingService {
         detail.setCategoryCode(category == null ? "other" : category.getCode());
         detail.setCategoryName(category == null ? "" : category.getName());
         detail.setTags(JsonUtil.parseList(listing.getTags(), String.class));
-        detail.setItems(JsonUtil.parseList(listing.getItems(), ItemGroup.class));
         detail.setPhotoUrls(JsonUtil.parseList(listing.getPhotoUrls(), String.class));
         detail.setTitle(listing.getTitle());
         detail.setDescription(listing.getDescription());
+        detail.setAutoReply(trimToEmpty(listing.getAutoReply()));
         detail.setContactType(listing.getContactType());
         detail.setContactValue(listing.getContactValue());
         detail.setLatitude(listing.getLatitude());
@@ -241,8 +256,9 @@ public class ListingService {
             item.setCategoryCode(category == null ? "other" : category.getCode());
             item.setCategoryName(category == null ? "" : category.getName());
             item.setTags(JsonUtil.parseList(listing.getTags(), String.class));
-            item.setItems(JsonUtil.parseList(listing.getItems(), ItemGroup.class));
             item.setTitle(listing.getTitle());
+            // 分享卡片封面用第一张图
+            item.setPhotoUrls(JsonUtil.parseList(listing.getPhotoUrls(), String.class));
             item.setAddress(listing.getAddress());
             // 坐标带上：前端地图需要把自己的发布也标出来（可能在 nearby 半径外）
             item.setLatitude(listing.getLatitude());
@@ -297,60 +313,34 @@ public class ListingService {
 
     // ---- 私有方法 ----
 
-    /** 校验并把请求规整：tags 去重、items 按分组校验归属（与前端发布页规则一致） */
+    /** 校验并把请求规整：tags 去重且属于该分类预设标签（与前端发布页规则一致；items 三级字典已废弃不校验） */
     private void normalizeAndValidate(Category category, ListingSaveReq req) {
         List<String> tags = distinct(req.getTags());
-        if (tags.isEmpty()) {
-            throw new ApiException("请至少选一个工种");
-        }
         if (tags.size() > 3) {
-            throw new ApiException("工种最多选 3 个");
+            throw new ApiException("标签最多选 3 个");
         }
-        Map<String, List<String>> allowedItems = JsonUtil.parseList(category.getTags(), TagDef.class).stream()
-                .collect(Collectors.toMap(TagDef::getName, TagDef::getItems, (a, b) -> a, LinkedHashMap::new));
+        Set<String> allowedTags = JsonUtil.parseList(category.getTags(), TagDef.class).stream()
+                .map(TagDef::getName)
+                .collect(Collectors.toSet());
         for (String tag : tags) {
-            if (!allowedItems.containsKey(tag)) {
-                throw new ApiException("工种「" + tag + "」不属于该分类");
+            if (!allowedTags.contains(tag)) {
+                throw new ApiException("标签「" + tag + "」不属于该分类");
             }
-        }
-        List<ItemGroup> groups = new ArrayList<>();
-        int total = 0;
-        for (ItemGroup group : req.getItems()) {
-            if (group == null || group.getNames() == null || group.getNames().isEmpty()) {
-                continue;
-            }
-            if (!tags.contains(group.getTag())) {
-                throw new ApiException("项目分组与所选工种不一致");
-            }
-            List<String> allowed = allowedItems.getOrDefault(group.getTag(), List.of());
-            List<String> names = distinct(group.getNames());
-            for (String name : names) {
-                if (!allowed.contains(name)) {
-                    throw new ApiException("项目「" + name + "」不在「" + group.getTag() + "」的可选项里");
-                }
-            }
-            ItemGroup normalized = new ItemGroup();
-            normalized.setTag(group.getTag());
-            normalized.setNames(names);
-            groups.add(normalized);
-            total += names.size();
-        }
-        // 所选工种里只要有任一工种提供具体项目，就要求至少勾一项（与发布页一致）
-        boolean anyTagHasItems = tags.stream().anyMatch(tag -> !allowedItems.get(tag).isEmpty());
-        if (anyTagHasItems && total == 0) {
-            throw new ApiException("请勾选你会做的具体项目");
         }
         if (req.getPhotoUrls() != null && req.getPhotoUrls().size() > 3) {
             throw new ApiException("图片最多 3 张");
         }
-        if (!"wechat".equals(req.getContactType()) && !"phone".equals(req.getContactType())) {
-            throw new ApiException("联系方式类型不合法");
-        }
         if (req.getTitle() == null || req.getTitle().trim().length() < 2) {
             throw new ApiException("技能名称至少两个字");
         }
+        if (req.getTitle().trim().length() > 8) {
+            throw new ApiException("技能名称最多 8 个字");
+        }
+        // 联系方式已不再收集：老客户端传合法值照存，其余一律规整为 wechat/空串
+        if (!"wechat".equals(req.getContactType()) && !"phone".equals(req.getContactType())) {
+            req.setContactType("wechat");
+        }
         req.setTags(tags);
-        req.setItems(groups);
     }
 
     /** create 与 update 共用的内容字段复制；有效期/状态/浏览数不在这里动 */
@@ -359,10 +349,11 @@ public class ListingService {
         listing.setTitle(req.getTitle().trim());
         listing.setDescription(trimToEmpty(req.getDescription()));
         listing.setTags(JsonUtil.toJson(req.getTags()));
-        listing.setItems(JsonUtil.toJson(req.getItems()));
+        listing.setItems(JsonUtil.toJson(List.of()));
         listing.setPhotoUrls(JsonUtil.toJson(req.getPhotoUrls() == null ? List.of() : req.getPhotoUrls()));
+        listing.setAutoReply(trimToEmpty(req.getAutoReply()));
         listing.setContactType(req.getContactType());
-        listing.setContactValue(req.getContactValue().trim());
+        listing.setContactValue(trimToEmpty(req.getContactValue()));
         listing.setLatitude(req.getLatitude());
         listing.setLongitude(req.getLongitude());
         listing.setAddress(trimToEmpty(req.getAddress()));
@@ -370,7 +361,7 @@ public class ListingService {
     }
 
     private String secCheckText(ListingSaveReq req) {
-        return req.getTitle() + "\n" + trimToEmpty(req.getDescription()) + "\n" + req.getContactValue();
+        return req.getTitle() + "\n" + trimToEmpty(req.getDescription()) + "\n" + trimToEmpty(req.getAutoReply());
     }
 
     private User requireUser(long userId) {

@@ -15,8 +15,9 @@ public class MineItem {
     private String categoryCode;
     private String categoryName;
     private List<String> tags = new ArrayList<>();
-    private List<ItemGroup> items = new ArrayList<>();
     private String title;
+    /** 图片地址：前端分享卡片取第一张当封面 */
+    private List<String> photoUrls = new ArrayList<>();
     private String address = "";
     private Double latitude;
     private Double longitude;

@@ -1,4 +1,4 @@
-const { CATEGORIES, currentCategories, findCategory, tagList, itemsOfTag, flattenItems } = require('../../utils/categories')
+const { currentCategories, tagList, iconForCode } = require('../../utils/categories')
 const { formatDistance } = require('../../utils/geo')
 const api = require('../../utils/api')
 const { dismissPublishPrompt, getPublishPromptDismissedAt, hasPublished } = require('../../utils/store')
@@ -9,26 +9,25 @@ const DEFAULT_CENTER = {
   longitude: 104.065735
 }
 
-// 数据拉取半径：一次拉 10km、每分类配额（后端约定），切分类纯前端筛选不发请求
-const FETCH_RADIUS = 10000
+// 数据拉取半径：后端上限 20km（超了会被截断）；每分类请求各自拉取
+const FETCH_RADIUS = 20000
 
-// 网格占位：相邻/同点技能各占一格防遮挡。参考最大级别（18）下保证最小间距；
-// 缩小后重合不做处理（产品确认接受），低倍率由原生聚簇收成数字簇兜底
-const GRID_SPACING_PX = 80   // 格子最小间距（逻辑像素）
+// 网格占位：相邻/同点技能各占一格，格子跨度约 6~8 米（随纬度）以贴近真实坐标；
+// 代价是放大到 18 级时相邻标记仅隔 14px 会互相压边（产品确认接受）；
+// 原生聚簇已关闭，低倍率下密集区域图标会重叠（见 buildMarkers）
+const GRID_SPACING_PX = 14   // 格子最小间距（逻辑像素）
 const GRID_REF_SCALE = 18    // 换算格子地理跨度所参考的缩放级别
-const GRID_MAX_RING = 8      // 挪移时最多向外搜的圈数（17×17=289 格 ≥ 数据上限 240 条）
+const GRID_MAX_RING = 9      // 挪移时最多向外搜的圈数（19×19=361 格 ≥ 数据上限 300 条）
 
 Page({
   data: {
     latitude: DEFAULT_CENTER.latitude,
     longitude: DEFAULT_CENTER.longitude,
     scale: 15,
-    categories: CATEGORIES,
+    categories: currentCategories(),
     categoryId: 0,
     tagOptions: [],
-    itemOptions: [],
     activeTag: '',
-    activeItem: '',
     listings: [],
     filtered: [],
     listItems: [],      // 列表抽屉的数据源：全部 filtered
@@ -55,6 +54,20 @@ Page({
       this._focusId = Number(focusFromApp)
       getApp().globalData.focusListingId = null
     }
+    // 发布/编辑成功后由发布页标记：缓存作废，回地图强制重拉
+    const app = getApp()
+    if (app.globalData.listingsDirty) {
+      app.globalData.listingsDirty = false
+      this._catCache = {}
+      this._extra = []
+      this._forceReload = true
+    }
+    // 已有数据且无聚焦目标时不重拉：附近接口限流 60 秒 6 次，频繁 onShow 白耗额度
+    if (this.data.listings.length && !this._focusId && !this._forceReload) {
+      this.applyFilter()
+      return
+    }
+    this._forceReload = false
     this.loadLocationThenListings()
     this.maybeShowPrompt()
   },
@@ -86,28 +99,33 @@ Page({
   noopPrompt() {},
 
   loadLocationThenListings() {
-    // 模糊定位（约 5km 精度）：官方对「搜附近」类场景的推荐接口，审核门槛低。
-    // 注意 requiredPrivateInfos 中与 wx.getLocation 互斥，只能二选一；
-    // 将来需要米级精确距离时再切回 getLocation（需先通过微信接口权限申请）
-    wx.getFuzzyLocation({
+    // 精确定位（米级）：getLocation 与 getFuzzyLocation 在 requiredPrivateInfos 中互斥、只能二选一，
+    // 这里全项目统一用 getLocation；type 必须 gcj02 才能与腾讯地图/后端坐标一致（默认是 wgs84）
+    wx.getLocation({
       type: 'gcj02',
       success: (res) => {
         const center = { latitude: res.latitude, longitude: res.longitude }
-        //console.log('getFuzzyLocation success:', center)
-        //let center = {latitude: 30.57447, longitude: 103.92377};
         getApp().globalData.location = center
+        // 定位变了：旧位置的数据全部作废，清分类缓存防串数据
+        const old = this._center || {}
+        if (Math.abs((old.latitude || 0) - center.latitude) > 0.01 ||
+            Math.abs((old.longitude || 0) - center.longitude) > 0.01) {
+          this._catCache = {}
+          this._extra = []
+        }
+        this._center = center
         // 聚焦模式下不把地图中心切到用户位置，等数据到位后直接定位到目标技能，避免地图先跳走再跳回
         if (!this._focusId) {
           this.setData({ latitude: center.latitude, longitude: center.longitude })
         }
-        this.refreshListings(center)
+        this.fetchCategory(this.data.categoryId, center)
       },
       fail: (err) => {
-        // 常见失败原因：开发者工具不支持 getFuzzyLocation（需真机预览）、
-        // mp 后台「接口设置」未开通该接口、用户拒绝授权
-        console.error('getFuzzyLocation fail:', err && err.errMsg)
+        // 常见失败原因：用户拒绝授权、mp 后台「精确定位」接口权限未开通
+        console.error('getLocation fail:', err && err.errMsg)
         wx.showToast({ title: '定位失败，显示示例位置', icon: 'none' })
-        this.refreshListings(DEFAULT_CENTER)
+        this._center = DEFAULT_CENTER
+        this.fetchCategory(this.data.categoryId, DEFAULT_CENTER)
       }
     })
   },
@@ -115,38 +133,53 @@ Page({
   // 列表条目的展示字段派生：nearby 主拉取与聚焦补拉详情共用
   decorateListing(item) {
     const tags = item.tags || []
-    const items = item.items || []
     return {
       ...item,
       tags,
-      items,
       tagText: tags.join(' · '),
-      itemText: flattenItems(items).join(' · '),
       distanceText: item.distance === null || item.distance === undefined
         ? ''
         : formatDistance(item.distance)
     }
   },
 
-  // 拉取 10 公里内的上架发布（后端按分类配额返回）；自己的发布也在 nearby 结果里，无需单独请求
-  refreshListings(center) {
-    api.nearby({ latitude: center.latitude, longitude: center.longitude, radius: FETCH_RADIUS })
+  // 按分类拉取附近发布：categoryId=0 走后端配额模式（全分类共 300 条），
+  // 指定分类精确拉取该类。结果入 _catCache，切分类命中缓存不再发请求（限流 6 次/60 秒）
+  fetchCategory(categoryId, center) {
+    const loc = center || this._center || DEFAULT_CENTER
+    const cacheKey = String(categoryId)
+    const cached = (this._catCache || {})[cacheKey]
+    if (cached) {
+      this.setData({ listings: cached }, () => {
+        this.applyFilter()
+        this.focusAfterFetch()
+      })
+      return
+    }
+    const params = { latitude: loc.latitude, longitude: loc.longitude, radius: FETCH_RADIUS }
+    if (categoryId) params.categoryId = categoryId
+    api.nearby(params)
       .then((nearbyData) => {
         const listings = (nearbyData.list || []).map((item) => this.decorateListing(item))
         listings.sort((a, b) => (a.distance || 0) - (b.distance || 0))
-        this._extra = []            // 新数据集到位，清掉上次的筛选补查缓存
-        this._fetchedKey = ''       // 同一筛选条件失败只补查一次
+        this._catCache = this._catCache || {}
+        this._catCache[cacheKey] = listings
+        this._extra = []            // 新数据集到位，清掉上次的聚焦补拉缓存
         getApp().globalData.listings = listings
         this.setData({ listings }, () => {
           this.applyFilter()
-          // 转发/收藏「看位置」进入：数据到位后聚焦目标技能，只聚焦一次
-          if (this._focusId) {
-            const id = this._focusId
-            this._focusId = null
-            this.focusListing(id)
-          }
+          this.focusAfterFetch()
         })
       })
+      .catch(() => {})
+  },
+
+  // 转发/收藏「看位置」进入：数据到位后聚焦目标技能，只聚焦一次
+  focusAfterFetch() {
+    if (!this._focusId) return
+    const id = this._focusId
+    this._focusId = null
+    this.focusListing(id)
   },
 
   // 聚焦某条技能：等价于用户在地图上点了它（居中 + 选中 + callout 常驻 + 底部卡片）
@@ -156,9 +189,7 @@ Page({
       this.setData({
         categoryId: 0,
         tagOptions: [],
-        itemOptions: [],
         activeTag: '',
-        activeItem: '',
         latitude: item.latitude,
         longitude: item.longitude,
         scale: 16
@@ -190,9 +221,9 @@ Page({
   },
 
   emptyTextOf() {
-    const { activeItem, activeTag } = this.data
-    if (activeItem) return `附近暂时没人会「${activeItem}」，可先看「${activeTag}」全部`
-    if (activeTag) return `附近暂时没有「${activeTag}」，换个工种看看`
+    const { activeTag, categoryId } = this.data
+    if (activeTag) return `附近暂时没有「${activeTag}」，可先看该分类全部`
+    if (categoryId !== 0) return '附近暂时没有这个分类的发布，换个分类看看'
     return '这一带还没有人发布，换个分类或稍后过来看'
   },
 
@@ -206,13 +237,11 @@ Page({
   },
 
   applyFilter() {
-    const { categoryId, activeTag, activeItem, selected } = this.data
+    const { categoryId, activeTag, selected } = this.data
     const listings = this.allListings()
     const filtered = listings.filter((item) => {
-      // 数据源已保证均为上架中：nearby 服务端按 status=1 且未过期过滤
       if (categoryId !== 0 && item.categoryId !== categoryId) return false
-      if (activeTag && !(item.tags || []).includes(activeTag)) return false
-      if (activeItem && flattenItems(item.items || []).indexOf(activeItem) < 0) return false
+      if (activeTag && (item.tags || []).indexOf(activeTag) < 0) return false
       return true
     })
     const selectedStill = selected && filtered.some((item) => item.id === selected.id)
@@ -225,58 +254,30 @@ Page({
       listItems: filtered,
       markers: this.buildMarkers(filtered, selectedStill)
     })
-    // 配额模式可能截掉某筛选组合的数据：筛后为空时按条件精确补查一次
-    if (!filtered.length && (categoryId !== 0 || activeTag || activeItem)) {
-      this.fetchFilterExtra()
-    }
-  },
-
-  // 按当前筛选条件向 10km 半径精确补查，结果并入数据源后重筛；同一条件只查一次
-  fetchFilterExtra() {
-    const { categoryId, activeTag, activeItem, latitude, longitude } = this.data
-    const key = [categoryId, activeTag, activeItem].join('|')
-    if (this._fetchedKey === key || this._fetchingFilter) return
-    this._fetchedKey = key
-    this._fetchingFilter = true
-    // GET 参数只传有值的字段，避免 undefined 被序列化成 "undefined"
-    const params = { latitude, longitude, radius: FETCH_RADIUS }
-    if (categoryId) params.categoryId = categoryId
-    if (activeTag) params.tag = activeTag
-    if (activeItem) params.itemName = activeItem
-    api
-      .nearby(params)
-      .then((data) => {
-        this._fetchingFilter = false
-        this._extra = (this._extra || []).concat(data.list || [])
-        this.applyFilter()
-      })
-      .catch(() => {
-        this._fetchingFilter = false
-      })
   },
 
   // 一个技能一个 marker：渲染坐标经网格占位摊开，相邻/同点的技能各占一格，图标与文字不再互相遮挡。
-  // 只偏移渲染坐标；距离、详情、导航一律用真实坐标。非选中时 callout 点击才显示（常驻 callout 是卡顿主因），密集时参与原生聚簇
+  // 只偏移渲染坐标；距离、详情、导航一律用真实坐标。非选中时 callout 点击才显示（常驻 callout 是卡顿主因）。
+  // 关闭原生聚簇（wxml 的 enable-markers-cluster）：微信按屏幕像素聚合，阈值远大于网格间距，
+  // 会把摊开的点又收回数字簇，抵消网格占位；代价是低倍率下密集区域图标会重叠
   buildMarkers(listings, selectedStill) {
     const markers = this.placeOnGrid(listings).map(({ item, latitude, longitude }) => {
       const active = selectedStill && item.id === selectedStill.id
-      const cat = findCategory(item.categoryId)
       // callout 只在选中时展示标题+距离；未选中的常驻文字改用轻量 label（callout 常驻是卡顿主因）
       const content = `${item.title}  ${item.distanceText}`
       return {
         id: Number(item.id),
         latitude,
         longitude,
-        width: active ? 40 : 32,
-        height: active ? 52 : 42,
-        iconPath: `/assets/markers/${cat.code}.png`,
+        width: active ? 28 : 22,
+        height: active ? 36 : 29,
+        iconPath: `/assets/markers/${iconForCode(item.categoryCode)}.png`,
         anchor: { x: 0.5, y: 1 },
         zIndex: active ? 9 : 1,
-        joinCluster: !active,
-        // 常驻 label：显示分类名
+        // 常驻 label：显示技能名称（用户自定义标题），宽度自适应不截断
         label: !active
           ? {
-              content: item.categoryName,
+              content: item.title,
               color: '#2F3A32',
               bgColor: '#FFFFFF',
               borderColor: '#DDE8D6',
@@ -284,11 +285,10 @@ Page({
               borderRadius: 8,
               fontSize: 11,
               padding: 4,
-              width: 60,
               textAlign: 'center',
               // label 中心点相对图标底尖（坐标点）偏移：anchorX 0 水平居中，anchorY 再抬高避免压住图标
               anchorX: 0,
-              anchorY: -66
+              anchorY: -53
             }
           : undefined,
         callout: {
@@ -304,8 +304,6 @@ Page({
         }
       }
     })
-    this._markersById = {}
-    markers.forEach((marker) => { this._markersById[marker.id] = marker })
     return markers
   },
 
@@ -344,41 +342,21 @@ Page({
     })
   },
 
-  // 点聚合簇：以簇内 marker 的质心为中心放大一级，逐步看清密集区域
-  onClusterClick(e) {
-    const cluster = (e.detail && e.detail.cluster) || e.cluster
-    const ids = (cluster && cluster.markerIds) || []
-    const members = ids
-      .map((id) => this._markersById[id])
-      .filter(Boolean)
-    if (!members.length) return
-    const lat = members.reduce((sum, m) => sum + m.latitude, 0) / members.length
-    const lng = members.reduce((sum, m) => sum + m.longitude, 0) / members.length
-    this.setData({
-      latitude: lat,
-      longitude: lng,
-      scale: Math.min(this.data.scale + 2, 18)
-    })
-  },
-
+  // 切分类：命中分类缓存直接用（不发请求），未命中才向服务端拉
   onCategory(e) {
     const categoryId = Number(e.currentTarget.dataset.id)
     this.setData({
       categoryId,
       tagOptions: tagList(categoryId),
-      itemOptions: [],
       activeTag: '',
-      activeItem: '',
       selected: null,
       showList: false
-    }, () => this.applyFilter())
+    }, () => this.fetchCategory(categoryId))
   },
 
   onTagAll() {
     this.setData({
       activeTag: '',
-      activeItem: '',
-      itemOptions: [],
       selected: null
     }, () => this.applyFilter())
   },
@@ -388,20 +366,6 @@ Page({
     const same = this.data.activeTag === tag
     this.setData({
       activeTag: same ? '' : tag,
-      activeItem: '',
-      itemOptions: same ? [] : itemsOfTag(this.data.categoryId, tag),
-      selected: null
-    }, () => this.applyFilter())
-  },
-
-  onItemAll() {
-    this.setData({ activeItem: '', selected: null }, () => this.applyFilter())
-  },
-
-  onItem(e) {
-    const item = e.currentTarget.dataset.item
-    this.setData({
-      activeItem: this.data.activeItem === item ? '' : item,
       selected: null
     }, () => this.applyFilter())
   },

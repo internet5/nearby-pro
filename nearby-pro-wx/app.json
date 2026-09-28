@@ -3,6 +3,7 @@
     "pages/map/index",
     "pages/publish/index",
     "pages/detail/index",
+    "pages/route/index",
     "pages/mine/index",
     "pages/feedback/index",
     "pages/chats/index",
@@ -49,7 +50,7 @@
       "desc": "你的位置将用于查找附近的自由职业者"
     }
   },
-  "requiredPrivateInfos": ["getFuzzyLocation", "chooseLocation"],
+  "requiredPrivateInfos": ["getLocation", "chooseLocation"],
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "renderer": "webview",

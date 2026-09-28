@@ -5,6 +5,24 @@
   background: var(--bg);
 }
 
+/* 顶部技能上下文条：标明当前会话咨询的是哪个技能 */
+.ctx-bar {
+  padding: 14rpx 32rpx;
+  font-size: 24rpx;
+  color: var(--primary-deep);
+  background: var(--primary-soft);
+  border-bottom: 1rpx solid var(--primary-line);
+  text-align: center;
+}
+
+/* 对方消息里服务端代发的自动回复小标 */
+.auto-tag {
+  width: 100%;
+  margin-bottom: 6rpx;
+  font-size: 20rpx;
+  color: var(--ink-3);
+}
+
 .msg-list {
   flex: 1;
   min-height: 0;
@@ -28,6 +46,8 @@
 
 .msg {
   display: flex;
+  /* 允许换行：已读/失败提示换到气泡下方显示 */
+  flex-wrap: wrap;
   margin-top: 20rpx;
 }
 
@@ -66,10 +86,26 @@
 }
 
 .fail-tip {
+  width: 100%;
+  box-sizing: border-box;
   margin-top: 6rpx;
   font-size: 20rpx;
   color: #C74A3C;
   text-align: right;
+}
+
+/* 已读回执：未读弱灰，已读主题色 */
+.read-tip {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: var(--ink-3);
+  text-align: right;
+}
+
+.read-tip.read-on {
+  color: var(--primary);
 }
 
 .list-bottom-pad {

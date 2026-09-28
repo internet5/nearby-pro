@@ -18,7 +18,6 @@ public class NearbyItem {
     private String categoryCode;
     private String categoryName;
     private List<String> tags = new ArrayList<>();
-    private List<ItemGroup> items = new ArrayList<>();
     private String title;
     private Double latitude;
     private Double longitude;

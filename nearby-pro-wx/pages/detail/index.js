@@ -1,5 +1,8 @@
 const api = require('../../utils/api')
 const { formatDistance } = require('../../utils/geo')
+const { askChatSubscribe } = require('../../utils/subscribe')
+const { skillCard } = require('../../utils/share')
+const { fetchWalkingRoute } = require('../../utils/route')
 
 // 举报理由：文案与后端 reason 枚举一一对应
 const REPORT_REASONS = [
@@ -14,6 +17,8 @@ Page({
     item: null,
     missing: false,
     locMarkers: [],
+    locPolylines: [],
+    locIncludePoints: [],
     remainDays: null
   },
 
@@ -25,43 +30,87 @@ Page({
       viewer.viewerLatitude = loc.latitude
       viewer.viewerLongitude = loc.longitude
     }
+    // 导航路线需要真实定位（起点）：拉一次精确定位，拿不到就不画线（保持只显示终点）
+    this._myLocation = null
+    wx.getLocation({
+      type: 'gcj02',
+      success: (res) => {
+        this._myLocation = { latitude: res.latitude, longitude: res.longitude }
+        this.applyRoute()
+      },
+      fail: () => {}
+    })
     api
       .listingDetail(query.id, viewer)
       .then((item) => {
         const tags = item.tags || []
-        const items = item.items || []
         const decorated = {
           ...item,
           tags,
-          items,
           tagText: tags.join(' · '),
-          itemText: items.map((g) => (g.names || []).join('、')).filter(Boolean).join('；'),
           distanceText: item.distance === null || item.distance === undefined
             ? ''
             : formatDistance(item.distance)
         }
-        // 位置卡片的小地图标记，用分类图标与地图页保持一致
+        // 位置卡片的小地图标记：终点用「终」图标，起点待定位到位后由 applyRoute 补「起」
         const locMarkers = item.latitude && item.longitude
           ? [{
               id: 1,
               latitude: item.latitude,
               longitude: item.longitude,
-              width: 28,
-              height: 36,
-              iconPath: `/assets/markers/${item.categoryCode || 'other'}.png`,
-              anchor: { x: 0.5, y: 1 }
+              width: 26,
+              height: 26,
+              iconPath: '/assets/markers/end.png',
+              anchor: { x: 0.5, y: 0.5 }
             }]
           : []
         // 有效期剩余天数，向上取整；仅上架中的发布展示
         const remainDays = item.expireTime
           ? Math.max(0, Math.ceil((new Date(item.expireTime).getTime() - Date.now()) / 86400000))
           : null
-        this.setData({ item: decorated, missing: false, locMarkers, remainDays })
+        this.setData({ item: decorated, missing: false, locMarkers, remainDays }, () => this.applyRoute())
       })
       .catch(() => {
         // 失败原因（已删除/下架/封禁）已由请求层 toast，这里切到空态
         this.setData({ missing: true })
       })
+  },
+
+  // 小地图导航路线：定位到位后，优先拉腾讯步行路线（沿道路），拿不到就画直线虚线兜底
+  applyRoute() {
+    const item = this.data.item
+    const my = this._myLocation
+    if (!item || !my || !item.latitude || !item.longitude || this._routeApplied) return
+    this._routeApplied = true
+    // 追加起点「起」标记（id=2 与终点 id=1 区分）
+    const markers = (this.data.locMarkers || []).concat([{
+      id: 2,
+      latitude: my.latitude,
+      longitude: my.longitude,
+      width: 26,
+      height: 26,
+      iconPath: '/assets/markers/start.png',
+      anchor: { x: 0.5, y: 0.5 },
+      zIndex: 10
+    }])
+    fetchWalkingRoute(my, item).then((route) => {
+      // 有真实路线用真实路线（实线）；否则回退直线（虚线）提示「非真实路径」
+      const points = route ? route.points : null
+      const routePoints = points || [
+        { latitude: my.latitude, longitude: my.longitude },
+        { latitude: item.latitude, longitude: item.longitude }
+      ]
+      this.setData({
+        locMarkers: markers,
+        locPolylines: [{
+          points: routePoints,
+          color: '#3B82F6',
+          width: 4,
+          dottedLine: !points
+        }],
+        locIncludePoints: routePoints
+      })
+    })
   },
 
   onCopy() {
@@ -76,23 +125,37 @@ Page({
     wx.makePhoneCall({ phoneNumber: this.data.item.contactValue })
   },
 
-  // 点地址或小地图，打开微信原生位置页，可缩放、看周边
+  // 预览技能图片（微信原生大图浏览，可左右滑动）
+  onPreviewPhoto(e) {
+    const item = this.data.item
+    if (!item) return
+    wx.previewImage({ current: e.currentTarget.dataset.src, urls: item.photoUrls || [] })
+  },
+
+  // 点地址或小地图，打开自建路线页：画「我→技能」的真实步行路线，底部可再跳原生导航
   onOpenLocation() {
     const item = this.data.item
     if (!item || !item.latitude || !item.longitude) return
-    wx.openLocation({
-      latitude: item.latitude,
-      longitude: item.longitude,
-      name: item.title,
-      address: item.address || '',
-      scale: 18
+    wx.navigateTo({
+      url:
+        '/pages/route/index?lat=' +
+        item.latitude +
+        '&lng=' +
+        item.longitude +
+        '&title=' +
+        encodeURIComponent(item.title || '') +
+        '&address=' +
+        encodeURIComponent(item.address || '')
     })
   },
 
-  // 联系TA：进入私聊页（懒连接，进聊天页才与 IM 网关握手）
+  // 联系TA：进入私聊页（懒连接，进聊天页才与 IM 网关握手）；
+  // 带 listingId+技能名：聊天按「对方+技能」分会话，服务端首次咨询还会触发技能自动回复
   onChat() {
     const item = this.data.item
     if (!item || !item.userId) return
+    // 顺带攒一条订阅消息授权额度（用户勾「总是允许」后静默累积）
+    askChatSubscribe()
     wx.navigateTo({
       url:
         '/pages/chat/index?peerId=' +
@@ -100,7 +163,11 @@ Page({
         '&nickname=' +
         encodeURIComponent(item.nickname || '') +
         '&avatarUrl=' +
-        encodeURIComponent(item.avatarUrl || '')
+        encodeURIComponent(item.avatarUrl || '') +
+        '&listingId=' +
+        (item.id || 0) +
+        '&title=' +
+        encodeURIComponent(item.title || '')
     })
   },
 
@@ -121,11 +188,12 @@ Page({
   onShareAppMessage() {
     const item = this.data.item
     if (item) {
-      return {
-        title: `「${item.title}」｜${item.categoryName}师傅就在附近`,
-        // 落地到地图并聚焦这条技能，等价于在地图上点了它
-        path: `/pages/map/index?listingId=${item.id}`
-      }
+      // 落地到地图并聚焦这条技能，等价于在地图上点了它；封面用第一张图
+      return skillCard({
+        id: item.id,
+        title: item.title,
+        cover: (item.photoUrls || [])[0]
+      })
     }
     return {
       title: '找附近的手艺人，上附近职人',

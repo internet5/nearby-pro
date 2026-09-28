@@ -4,6 +4,7 @@ const CACHE_KEY = 'nearby_pro_categories'
 const ALL_ITEM = { id: 0, code: 'all', name: '全部', tags: [] }
 
 // 硬编码兜底：接口不可用时保证基本可用（与数据库种子一致）
+// tags 为可选预设标签（发布可选 0~3 个，可跳过）；保留 [{name}] 对象形状与接口返回一致
 const CATEGORIES = [
   { id: 0, code: 'all', name: '全部', tags: [] },
   {
@@ -11,10 +12,12 @@ const CATEGORIES = [
     code: 'clean',
     name: '家政保洁',
     tags: [
-      { name: '日常保洁', items: [] },
-      { name: '开荒保洁', items: [] },
-      { name: '收纳整理', items: [] },
-      { name: '家电清洗', items: ['油烟机', '空调', '洗衣机', '冰箱'] }
+      { name: '日常保洁' },
+      { name: '深度保洁' },
+      { name: '油烟机清洗' },
+      { name: '空调清洗' },
+      { name: '家电清洗' },
+      { name: '收纳整理' }
     ]
   },
   {
@@ -22,30 +25,37 @@ const CATEGORIES = [
     code: 'repair',
     name: '维修安装',
     tags: [
-      { name: '水电维修', items: ['电路跳闸', '水管漏水', '开关插座', '灯具'] },
-      { name: '家电维修', items: ['空调', '冰箱', '洗衣机', '热水器', '油烟机', '电磁炉', '电视'] },
-      { name: '家具安装', items: ['灯具窗帘', '晾衣架', '家具组装', '电视挂墙'] },
-      { name: '管道疏通', items: ['马桶', '地漏', '厨房管道'] }
+      { name: '水电维修' },
+      { name: '家电维修' },
+      { name: '门窗维修' },
+      { name: '家具安装' },
+      { name: '管道疏通' },
+      { name: '开锁换锁' }
     ]
   },
   {
     id: 3,
     code: 'tutor',
-    name: '家教陪练',
+    name: '家教',
     tags: [
-      { name: '学科辅导', items: ['小学数学', '小学语文', '英语', '物理', '化学'] },
-      { name: '兴趣陪练', items: ['篮球', '钢琴', '书法'] },
-      { name: '语言培训', items: [] }
+      { name: '小学课辅' },
+      { name: '中学课辅' },
+      { name: '英语辅导' },
+      { name: '音乐' },
+      { name: '美术' },
+      { name: '书法' }
     ]
   },
   {
     id: 4,
     code: 'photo',
-    name: '摄影跟拍',
+    name: '摄影',
     tags: [
-      { name: '活动跟拍', items: [] },
-      { name: '证件形象', items: [] },
-      { name: '宠物拍摄', items: [] }
+      { name: '婚礼跟拍' },
+      { name: '儿童摄影' },
+      { name: '证件照' },
+      { name: '约拍' },
+      { name: '产品拍摄' }
     ]
   },
   {
@@ -53,21 +63,84 @@ const CATEGORIES = [
     code: 'run',
     name: '代驾跑腿',
     tags: [
-      { name: '代驾', items: [] },
-      { name: '跑腿取送', items: [] },
-      { name: '搬家搬运', items: [] }
+      { name: '代驾' },
+      { name: '代买' },
+      { name: '代送' },
+      { name: '排队代办' },
+      { name: '同城取件' }
+    ]
+  },
+  { id: 6, code: 'other', name: '其他', tags: [] },
+  {
+    id: 7,
+    code: 'care',
+    name: '陪护',
+    tags: [
+      { name: '老人陪护' },
+      { name: '病人陪护' },
+      { name: '母婴护理' },
+      { name: '育儿嫂' },
+      { name: '钟点照护' }
     ]
   },
   {
-    id: 6,
-    code: 'other',
-    name: '其他',
+    id: 8,
+    code: 'sell',
+    name: '卖货',
     tags: [
-      { name: '宠物照看', items: ['喂猫', '喂狗'] },
-      { name: '陪诊陪护', items: [] }
+      { name: '水果生鲜' },
+      { name: '小吃熟食' },
+      { name: '手工艺品' },
+      { name: '日用百货' },
+      { name: '花卉绿植' }
+    ]
+  },
+  {
+    id: 9,
+    code: 'move',
+    name: '搬运搬家',
+    tags: [
+      { name: '搬家' },
+      { name: '搬货' },
+      { name: '家具搬运' },
+      { name: '设备搬运' },
+      { name: '家具拆装' }
+    ]
+  },
+  {
+    id: 10,
+    code: 'design',
+    name: 'IT·设计',
+    tags: [
+      { name: '小程序开发' },
+      { name: '网站开发' },
+      { name: 'App开发' },
+      { name: 'UI设计' },
+      { name: '平面设计' },
+      { name: 'Logo设计' },
+      { name: '文案策划' },
+      { name: '视频剪辑' }
     ]
   }
 ]
+
+// 地图 marker 图标：assets/markers/{code}.png；新分类暂用相近图标占位，后续替换同名文件即可
+const CODE_ICONS = {
+  clean: 'clean',
+  repair: 'repair',
+  tutor: 'tutor',
+  photo: 'photo',
+  run: 'run',
+  other: 'other',
+  care: 'clean',
+  sell: 'other',
+  move: 'run',
+  design: 'photo'
+}
+
+function iconForCode(code) {
+  return CODE_ICONS[code] || 'other'
+}
 
 // 当前生效的分类字典：接口数据 > 上次缓存 > 硬编码兜底
 const cached = wx.getStorageSync(CACHE_KEY)
@@ -96,55 +169,8 @@ function tagList(categoryId) {
   return (findCategory(categoryId).tags || []).map((tag) => tag.name)
 }
 
-function itemsOfTag(categoryId, tagName) {
-  const tag = (findCategory(categoryId).tags || []).find((item) => item.name === tagName)
-  return (tag && tag.items) || []
-}
-
-function itemsOfTags(categoryId, tagNames) {
-  const result = []
-  ;(tagNames || []).forEach((name) => {
-    itemsOfTag(categoryId, name).forEach((item) => {
-      if (result.indexOf(item) < 0) result.push(item)
-    })
-  })
-  return result
-}
-
-// 把 items 归一化为按工种分组的统一形状 [{ tag, names: [] }]
-// 兼容旧版平铺结构 ["空调","电磁炉"]（分不清归属，tag 记为空串）
-function normalizeItems(items) {
-  if (!items || !items.length) return []
-  if (typeof items[0] === 'string') {
-    return [{ tag: '', names: items.slice() }]
-  }
-  return items.map((group) => ({
-    tag: group.tag || '',
-    names: (group.names || []).slice()
-  }))
-}
-
-// 打平所有组的项目名，用于列表文案和按项目筛选
-function flattenItems(items) {
-  const result = []
-  normalizeItems(items).forEach((group) => {
-    group.names.forEach((name) => {
-      if (result.indexOf(name) < 0) result.push(name)
-    })
-  })
-  return result
-}
-
 function joinList(values) {
   return (values || []).join(' · ')
-}
-
-function shortLabel(item) {
-  const flat = flattenItems(item.items)
-  if (flat.length) return flat[0]
-  if (item.tags && item.tags.length) return item.tags[0]
-  const title = item.title || ''
-  return title.length > 8 ? `${title.slice(0, 8)}…` : title
 }
 
 module.exports = {
@@ -153,10 +179,6 @@ module.exports = {
   loadFromApi,
   findCategory,
   tagList,
-  itemsOfTag,
-  itemsOfTags,
-  normalizeItems,
-  flattenItems,
   joinList,
-  shortLabel
+  iconForCode
 }

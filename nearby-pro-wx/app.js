@@ -3,11 +3,12 @@ const { loadFromApi } = require('./utils/categories')
 const { refreshChatBadge } = require('./utils/badge')
 const imManager = require('./utils/im/im-manager')
 
-// mock 时代的本地存储 key，接入后端后一次性清掉
+// 早期纯本地 / 联调期的存储 key，接入后端后一次性清掉
 const LEGACY_KEYS = [
   'nearby_pro_my_listings',
   'nearby_pro_offline_ids',
-  'nearby_pro_feedbacks'
+  'nearby_pro_feedbacks',
+  'nearby_pro_device_id'
 ]
 
 App({

@@ -33,8 +33,10 @@ public class Listing {
     private String photoUrls;
     /** JSON 文本：List<String> */
     private String tags;
-    /** JSON 文本：List<ItemGroup> */
+    /** JSON 文本：List<ItemGroup>；已废弃的三级字典遗留列，新数据固定 [] */
     private String items;
+    /** 自动回复内容：有别人首次咨询该技能时由服务端以发布人身份发送 */
+    private String autoReply;
     private String contactType;
     private String contactValue;
     private Double latitude;

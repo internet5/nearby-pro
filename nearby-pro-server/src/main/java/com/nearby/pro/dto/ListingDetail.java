@@ -18,10 +18,11 @@ public class ListingDetail {
     private String categoryCode;
     private String categoryName;
     private List<String> tags = new ArrayList<>();
-    private List<ItemGroup> items = new ArrayList<>();
     private String title;
     private String description = "";
     private List<String> photoUrls = new ArrayList<>();
+    /** 自动回复内容：有别人首次咨询该技能时由服务端以发布人身份发送 */
+    private String autoReply = "";
     private String contactType;
     private String contactValue;
     private Double latitude;

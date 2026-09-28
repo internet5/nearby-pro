@@ -14,19 +14,8 @@
     </view>
   </view>
 
-  <view class="card" wx:if="{{item.items && item.items.length}}">
-    <view class="block-label">具体会做哪些</view>
-    <view class="skill-group" wx:for="{{item.items}}" wx:for-item="group" wx:key="tag">
-      <view wx:if="{{group.tag}}" class="skill-group-name">{{group.tag}}</view>
-      <view class="tags">
-        <view class="tag" wx:for="{{group.names}}" wx:for-item="skill" wx:key="*this">{{skill}}</view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 没勾具体项目的发布，工种在这里单独展示，避免详情里看不到工种 -->
-  <view class="card" wx:elif="{{item.tags && item.tags.length}}">
-    <view class="block-label">工种</view>
+  <view class="card" wx:if="{{item.tags && item.tags.length}}">
+    <view class="block-label">细分标签</view>
     <view class="tags">
       <view class="tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</view>
     </view>
@@ -37,8 +26,23 @@
     <view class="desc">{{item.description || '发布人暂未填写说明'}}</view>
   </view>
 
+  <view class="card" wx:if="{{item.photoUrls && item.photoUrls.length}}">
+    <view class="block-label">技能图片</view>
+    <view class="photo-grid">
+      <image
+        wx:for="{{item.photoUrls}}"
+        wx:key="*this"
+        class="photo-thumb"
+        src="{{item}}"
+        mode="aspectFill"
+        data-src="{{item}}"
+        bindtap="onPreviewPhoto"
+      />
+    </view>
+  </view>
+
   <view class="card">
-    <view class="block-label">服务位置<text class="loc-tip">点击地图可放大查看</text></view>
+    <view class="block-label">服务位置<text class="loc-tip">点击地图查看路线</text></view>
     <view class="desc" bindtap="onOpenLocation">{{item.address || '地图标记位置'}}<text class="loc-arrow">›</text></view>
     <map
       wx:if="{{locMarkers.length}}"
@@ -47,6 +51,8 @@
       longitude="{{item.longitude}}"
       scale="16"
       markers="{{locMarkers}}"
+      polyline="{{locPolylines}}"
+      include-points="{{locIncludePoints}}"
       enable-zoom="{{false}}"
       enable-scroll="{{false}}"
       enable-rotate="{{false}}"
@@ -54,7 +60,8 @@
     />
   </view>
 
-  <view class="card card-contact">
+  <!-- 联系方式已不在发布页收集；老数据的值仍展示，新发布此卡片不渲染 -->
+  <view class="card card-contact" wx:if="{{item.contactValue}}">
     <view class="block-label">{{item.contactType === 'phone' ? '手机号' : '微信号'}}</view>
     <view class="contact">{{item.contactValue}}</view>
   </view>
@@ -66,9 +73,10 @@
     <view wx:if="{{item.isOwner && item.status === 1}}" class="link" bindtap="onOffline">下架这条发布</view>
   </view>
 
-  <view class="actions">
-    <view class="btn btn-primary" bindtap="onCopy">复制联系方式</view>
-    <view class="btn btn-ghost" wx:if="{{item.contactType === 'phone'}}" bindtap="onCall">打电话</view>
+  <view class="actions" wx:if="{{!item.isOwner || item.contactValue}}">
+    <view wx:if="{{!item.isOwner}}" class="btn btn-primary" bindtap="onChat">联系TA</view>
+    <view wx:if="{{item.contactValue}}" class="btn {{item.isOwner ? 'btn-primary' : 'btn-ghost'}}" bindtap="onCopy">复制联系方式</view>
+    <view class="btn btn-ghost" wx:if="{{item.contactType === 'phone' && item.contactValue}}" bindtap="onCall">打电话</view>
   </view>
 </view>
 

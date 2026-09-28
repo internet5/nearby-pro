@@ -7,7 +7,7 @@ function loadCategories() {
   return request({ url: '/api/categories' })
 }
 
-/** 附近发布：params = { latitude, longitude, radius?, categoryId?, tag?, itemName?, keyword? } */
+/** 附近发布：params = { latitude, longitude, radius?, categoryId?, tag? }；限流 60 秒 6 次/IP */
 function nearby(params) {
   return request({ url: '/api/listings/nearby', data: params })
 }
@@ -87,28 +87,37 @@ function favoriteList() {
   return ensureLogin().then(() => request({ url: '/api/favorites' }))
 }
 
+/** COS 上传临时凭证（30 分钟有效，直传用） */
+function getCosCredentials() {
+  return ensureLogin().then(() => request({ url: '/api/cos/credentials' }))
+}
+
 // ---- 私聊（REST 辅助；实时收发走 utils/im/ 的 WebSocket 长连接）----
 
-/** 会话列表：[{peerId,nickname,avatarUrl,lastContent,lastTypeu,lastTime,unread}] */
+/** 会话列表：[{peerId,nickname,avatarUrl,listingId,listingTitle,lastContent,lastTypeu,lastTime,unread}] */
 function chatSessions() {
   return ensureLogin().then(() => request({ url: '/api/chat/sessions' }))
 }
 
-/** 聊天历史：peerId 对方用户 id；cursor 首页传 0；副作用把对方发我的 status=1 置 2 */
-function chatMessages(peerId, cursor, limit) {
-  return ensureLogin().then(() =>
-    request({
-      url: '/api/chat/messages',
-      data: { peerId, cursor: cursor || 0, limit: limit || 20 }
-    })
-  )
+/**
+ * 聊天历史：peerId 对方用户 id；cursor 首页传 0；副作用把对方发我的 status=1 置 2。
+ * listingId 限定技能会话（不传 = 无技能的旧会话，对应后端 listing_id IS NULL）
+ */
+function chatMessages(peerId, cursor, limit, listingId) {
+  return ensureLogin().then(() => {
+    const data = { peerId, cursor: cursor || 0, limit: limit || 20 }
+    if (listingId) data.listingId = listingId
+    return request({ url: '/api/chat/messages', data })
+  })
 }
 
-/** 标记会话已读 */
-function chatMarkRead(peerId) {
-  return ensureLogin().then(() =>
-    request({ url: '/api/chat/read', method: 'POST', data: { peerId } })
-  )
+/** 标记会话已读（listingId 含义同上） */
+function chatMarkRead(peerId, listingId) {
+  return ensureLogin().then(() => {
+    const data = { peerId }
+    if (listingId) data.listingId = listingId
+    return request({ url: '/api/chat/read', method: 'POST', data })
+  })
 }
 
 /** 未读总数（「我的」页角标） */
@@ -131,6 +140,7 @@ module.exports = {
   addFavorite,
   removeFavorite,
   favoriteList,
+  getCosCredentials,
   chatSessions,
   chatMessages,
   chatMarkRead,

@@ -16,8 +16,8 @@
       >{{item.name}}</view>
     </view>
 
-    <view class="label">工种（最多 3 个）<text class="req">*</text></view>
-    <view class="chips">
+    <view class="label">细分标签（可多选，可不选）</view>
+    <view class="chips" wx:if="{{tagItems.length}}">
       <view
         wx:for="{{tagItems}}"
         wx:key="name"
@@ -26,30 +26,7 @@
         bindtap="onTag"
       >{{item.name}}</view>
     </view>
-
-    <block wx:if="{{showSkills}}">
-      <view class="label">具体会做哪些（只勾你会的）</view>
-      <view
-        class="skill-group"
-        wx:for="{{skillGroups}}"
-        wx:for-item="group"
-        wx:key="tag"
-      >
-        <view class="skill-group-name">{{group.tag}}</view>
-        <view class="chips">
-          <view
-            wx:for="{{group.options}}"
-            wx:for-item="opt"
-            wx:key="name"
-            class="chip {{opt.on ? 'chip-on' : ''}}"
-            data-tag="{{group.tag}}"
-            data-name="{{opt.name}}"
-            bindtap="onSkill"
-          >{{opt.name}}</view>
-        </view>
-      </view>
-      <view class="hint">项目按工种分开勾。勾了「家电维修」不等于什么电器都会。不会修电磁炉就不要勾，避免对方白跑一趟。</view>
-    </block>
+    <view class="hint" wx:else>先选上面的分类，再按需挑细分标签，让需求方更容易搜到你。</view>
   </view>
 
   <view class="sec">
@@ -58,23 +35,47 @@
       <view class="sec-title">介绍自己</view>
     </view>
 
-    <view class="label">技能名称（一句话介绍）<text class="req">*</text></view>
-    <input
-      class="input"
-      maxlength="40"
-      placeholder="例如：上门水电维修"
-      value="{{form.title}}"
-      bindinput="onTitle"
-    />
+    <view class="label">技能名称<text class="req">*</text></view>
+    <view class="title-wrap">
+      <!-- maxlength 用 -1：原生限制会把输入法未上屏的拼音也算进长度，拼音打够字数就打不出字。
+           截断改在 onTitle 里做，计数器同步用 titleCount（已上屏字数） -->
+      <input
+        class="input"
+        maxlength="-1"
+        placeholder="最多 8 个字，例如：水电维修"
+        value="{{form.title}}"
+        bindinput="onTitle"
+      />
+      <view class="title-count {{titleCount >= 8 ? 'title-count-max' : ''}}">{{titleCount}}/8</view>
+    </view>
 
     <view class="label">补充说明</view>
     <textarea
       class="area"
-      maxlength="500"
+      maxlength="-1"
       placeholder="服务范围、上门时间、收费方式，写清楚需求方才找得到你"
       value="{{form.description}}"
       bindinput="onDesc"
     />
+
+    <view class="label">技能图片（最多 3 张）</view>
+    <view class="img-grid">
+      <view class="img-item" wx:for="{{form.images}}" wx:key="*this">
+        <image class="img-thumb" src="{{item}}" mode="aspectFill" data-src="{{item}}" bindtap="onPreviewImage" />
+        <view class="img-del" data-index="{{index}}" catchtap="onDeleteImage">×</view>
+      </view>
+      <view class="img-add" wx:if="{{form.images.length < 3}}" bindtap="onAddImage">+</view>
+    </view>
+
+    <view class="label">自动回复</view>
+    <textarea
+      class="area area-sm"
+      maxlength="-1"
+      placeholder="例如：您好，看到您的咨询，工作时间内我会尽快回复～"
+      value="{{form.autoReply}}"
+      bindinput="onAutoReply"
+    />
+    <view class="hint">仅在有别人首次咨询这个技能的时候才自动回复，后续消息由你自己回复。</view>
   </view>
 
   <view class="sec">
@@ -90,27 +91,8 @@
     </view>
   </view>
 
-  <view class="sec">
-    <view class="sec-head">
-      <view class="sec-bar"></view>
-      <view class="sec-title">联系方式<text class="req">*</text></view>
-    </view>
-
-    <view class="seg">
-      <view class="seg-item {{form.contactType === 'wechat' ? 'seg-on' : ''}}" data-type="wechat" bindtap="onContactType">微信号</view>
-      <view class="seg-item {{form.contactType === 'phone' ? 'seg-on' : ''}}" data-type="phone" bindtap="onContactType">手机号</view>
-    </view>
-    <input
-      class="input input-gap"
-      maxlength="32"
-      placeholder="{{form.contactType === 'wechat' ? '填写微信号' : '填写手机号'}}"
-      value="{{form.contactValue}}"
-      bindinput="onContactValue"
-    />
-  </view>
-
-  <view class="submit" bindtap="onSubmit">{{editId ? '保存修改' : '发布到地图'}}</view>
-  <view class="note">发布后可一键转发到微信群、朋友圈，让附近的人直接找到你。保留 30 天，可在「我的」里提前下架。当前为本地演示，数据只存在这台手机。</view>
+  <view class="submit {{submitting ? 'submit-disabled' : ''}}" bindtap="onSubmit">{{editId ? '保存修改' : '发布到地图'}}</view>
+  <view class="note">发布后可一键转发到微信群、朋友圈，让附近的人直接找到你。保留 30 天，可在「我的」里提前下架。</view>
 </view>
 
 <view class="page done-page" wx:else>

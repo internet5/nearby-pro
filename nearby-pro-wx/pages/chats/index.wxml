@@ -5,6 +5,8 @@
       data-peer-id="{{item.peerId}}"
       data-nickname="{{item.nickname}}"
       data-avatar-url="{{item.avatarUrl}}"
+      data-listing-id="{{item.listingId}}"
+      data-title="{{item.listingTitle}}"
       bindtap="onOpenChat"
       hover-class="session-hover"
     >
@@ -17,11 +19,12 @@
           <view class="name">{{item.nickname || '职人'}}</view>
           <view class="time">{{item.timeText}}</view>
         </view>
+        <view class="skill-line" wx:if="{{item.listingTitle}}">技能：{{item.listingTitle}}</view>
         <view class="row2">
           <view class="last">{{item.lastContent}}</view>
           <view class="badge" wx:if="{{item.unread > 0}}">{{item.unread > 99 ? '99+' : item.unread}}</view>
         </view>
-      </view>
+        </view>
     </view>
   </template>
 
@@ -32,14 +35,14 @@
 
   <block wx:if="{{toMe.length}}">
     <view class="group-title">找我的</view>
-    <block wx:for="{{toMe}}" wx:key="peerId">
+    <block wx:for="{{toMe}}" wx:key="key">
       <template is="session-item" data="{{item}}" />
     </block>
   </block>
 
   <block wx:if="{{fromMe.length}}">
     <view class="group-title">我发起的</view>
-    <block wx:for="{{fromMe}}" wx:key="peerId">
+    <block wx:for="{{fromMe}}" wx:key="key">
       <template is="session-item" data="{{item}}" />
     </block>
   </block>

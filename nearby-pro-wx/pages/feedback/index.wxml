@@ -3,7 +3,7 @@
     <view class="label">遇到的问题、想加的分类或工种，都可以写给我们</view>
     <textarea
       class="area"
-      maxlength="300"
+      maxlength="-1"
       placeholder="例如：想加「修鞋」分类；定位不准；某条发布信息不实……"
       value="{{content}}"
       bindinput="onInput"

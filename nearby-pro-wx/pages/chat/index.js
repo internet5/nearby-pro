@@ -3,14 +3,21 @@ const { getUserInfo } = require('../../utils/request')
 const imManager = require('../../utils/im/im-manager')
 const protocal = require('../../utils/im/protocal')
 const { formatChatTime } = require('../../utils/time')
+const { askChatSubscribe } = require('../../utils/subscribe')
 
 // 相邻消息间隔超过 5 分钟时插入时间提示条
 const TIME_GAP = 5 * 60 * 1000
+// 已读状态轮询间隔：页面可见期间重拉首页合并，让对方已读能实时反映
+const READ_POLL_MS = 8 * 1000
 
 Page({
   data: {
     peer: { id: null, nickname: '', avatarUrl: '' },
-    messages: [], // {fp, mine, content, status, ts, timeText} status: sending/sent/failed/received
+    // 技能会话上下文：同一对方按技能拆分会话，0 = 无技能的旧会话
+    listingId: 0,
+    listingTitle: '',
+    // peerRead 仅 mine 消息有效：对方是否已读（服务端 status=3，1/2 算未读）
+    messages: [], // {fp, mine, content, status, peerRead, isAuto, ts, timeText} status: sending/sent/failed/received
     scrollInto: '',
     input: '',
     loading: true,
@@ -26,13 +33,17 @@ Page({
   onLoad(query) {
     const peerId = Number(query.peerId)
     const nickname = decodeURIComponent(query.nickname || '')
+    const listingId = Number(query.listingId || 0) || 0
+    const listingTitle = decodeURIComponent(query.title || '')
     if (nickname) wx.setNavigationBarTitle({ title: nickname })
     this.setData({
-      peer: { id: peerId, nickname, avatarUrl: decodeURIComponent(query.avatarUrl || '') }
+      peer: { id: peerId, nickname, avatarUrl: decodeURIComponent(query.avatarUrl || '') },
+      listingId,
+      listingTitle
     })
-    // 懒连接 + 注册当前聊天页收消息回调
+    // 懒连接 + 注册当前聊天页收消息回调（按对方+技能路由）
     imManager.ensureConnected().catch(() => {})
-    imManager.setCurrentChat(peerId, (msg) => this.onReceive(msg))
+    imManager.setCurrentChat(peerId, (msg) => this.onReceive(msg), listingId)
     this.loadHistory(0)
   },
 
@@ -40,26 +51,43 @@ Page({
     imManager.ensureConnected().catch(() => {})
     if (this.data.peer.id) {
       // 从其他页面回来重新注册回调（setCurrentChat 指向本页）
-      imManager.setCurrentChat(this.data.peer.id, (msg) => this.onReceive(msg))
+      imManager.setCurrentChat(this.data.peer.id, (msg) => this.onReceive(msg), this.data.listingId)
       // 已有消息时重拉首页并按 fp 合并，兜底离线期间错过的实时消息
       if (this.data.messages.length) this.loadHistory(0, true)
+      // 页面可见期间轮询已读状态
+      this.startReadPoll()
     }
   },
 
   onHide() {
+    this.stopReadPoll()
     this.markRead()
   },
 
   onUnload() {
+    this.stopReadPoll()
     this.markRead()
     imManager.clearCurrentChat()
+  },
+
+  // 已读轮询：重拉首页按 fp 合并，已读状态随 merge 刷新（loadHistory 内有 historyLoading 防重入）
+  startReadPoll() {
+    this.stopReadPoll()
+    this.readTimer = setInterval(() => this.loadHistory(0, true), READ_POLL_MS)
+  },
+
+  stopReadPoll() {
+    if (this.readTimer) {
+      clearInterval(this.readTimer)
+      this.readTimer = null
+    }
   },
 
   // 标记会话已读：进页/收消息/离开时上报，失败静默
   markRead() {
     const peerId = this.data.peer.id
     if (!peerId) return
-    api.chatMarkRead(peerId).catch(() => {})
+    api.chatMarkRead(peerId, this.data.listingId).catch(() => {})
   },
 
   // 拉取历史：cursor=0 首页（后端把 <=0 当首页）；merge=true 时与现有消息按 fp 合并
@@ -67,21 +95,25 @@ Page({
     if (this.historyLoading) return
     this.historyLoading = true
     api
-      .chatMessages(this.data.peer.id, cursor)
+      .chatMessages(this.data.peer.id, cursor, 0, this.data.listingId)
       .then((data) => {
         this.historyLoading = false
         const me = String((getUserInfo() || {}).userId || '')
-        // 后端已按时间正序返回（旧→新），直接渲染即可
+        // 后端已按时间正序返回（旧→新），直接渲染即可。
+        // 注意不能按 fpIndex 跳过已存在的消息：merge 时要靠它们刷新已读状态
         const rows = data.list || []
         const fresh = []
         for (let i = 0; i < rows.length; i++) {
           const m = rows[i]
-          if (this.fpIndex[m.fp] !== undefined) continue
+          const mine = String(m.from) === me
           fresh.push({
             fp: m.fp,
-            mine: String(m.from) === me,
+            mine,
             content: m.content,
-            status: 'received',
+            // 服务端已落库即已送达：我发的置 sent（带已读标记），对方的置 received
+            status: mine ? 'sent' : 'received',
+            peerRead: mine && m.status === 3, // 服务端 1/2/3：3 才是对方已读
+            isAuto: m.isAuto === 1, // 服务端代发的技能自动回复
             ts: new Date(m.createTime).getTime(),
             timeText: ''
           })
@@ -96,7 +128,13 @@ Page({
           const old = this.data.messages
           for (let i = 0; i < old.length; i++) byFp[old[i].fp] = old[i]
           for (let i = 0; i < fresh.length; i++) {
-            if (!byFp[fresh[i].fp]) byFp[fresh[i].fp] = fresh[i]
+            const prev = byFp[fresh[i].fp]
+            if (!prev) {
+              byFp[fresh[i].fp] = fresh[i]
+            } else if (prev.mine) {
+              // 已存在且是我发的：仅刷新对方已读状态（本地发送态不动）
+              prev.peerRead = fresh[i].peerRead
+            }
           }
           messages = Object.keys(byFp)
             .map((k) => byFp[k])
@@ -126,7 +164,7 @@ Page({
     if (!this.data.hasMore || this.historyLoading) return
     const oldFirstFp = this.data.messages.length ? this.data.messages[0].fp : null
     api
-      .chatMessages(this.data.peer.id, this.nextCursor)
+      .chatMessages(this.data.peer.id, this.nextCursor, 0, this.data.listingId)
       .then((data) => {
         const me = String((getUserInfo() || {}).userId || '')
         // 后端已按时间正序返回（旧→新），prepend 到现有消息前面
@@ -135,11 +173,15 @@ Page({
         for (let i = 0; i < rows.length; i++) {
           const m = rows[i]
           if (this.fpIndex[m.fp] !== undefined) continue
+          const mine = String(m.from) === me
           fresh.push({
             fp: m.fp,
-            mine: String(m.from) === me,
+            mine,
             content: m.content,
-            status: 'received',
+            // 服务端已落库即已送达：我发的置 sent（带已读标记），对方的置 received
+            status: mine ? 'sent' : 'received',
+            peerRead: mine && m.status === 3, // 服务端 1/2/3：3 才是对方已读
+            isAuto: m.isAuto === 1, // 服务端代发的技能自动回复
             ts: new Date(m.createTime).getTime(),
             timeText: ''
           })
@@ -186,9 +228,11 @@ Page({
       wx.showToast({ title: '消息太长，请分条发送', icon: 'none' })
       return
     }
+    // 顺带攒一条订阅消息授权额度（不阻塞发送；用户勾「总是允许」后静默累积）
+    askChatSubscribe()
     // 预生成 fp：发送前就把气泡与回执绑定，resolve 后按 fp 翻转状态
     const fp = protocal.genFp()
-    const m = { fp, mine: true, content: text, status: 'sending', ts: Date.now(), timeText: '' }
+    const m = { fp, mine: true, content: text, status: 'sending', peerRead: false, ts: Date.now(), timeText: '' }
     const messages = this.withTimeHints(this.data.messages.concat([m]))
     this.rebuildFpIndex(messages)
     this.setData({ messages, input: '', scrollInto: 'm-' + this.fpIndex[fp] })
@@ -197,7 +241,7 @@ Page({
 
   doSend(fp, text) {
     imManager
-      .sendText(this.data.peer.id, text, fp)
+      .sendText(this.data.peer.id, text, fp, this.data.listingId)
       .then((res) => {
         const idx = this.fpIndex[fp]
         if (idx === undefined) return
@@ -222,7 +266,7 @@ Page({
     this.doSend(fp, msg.content)
   },
 
-  // 实时消息到达（im-manager 路由）：fp 去重后追加并滚到底
+  // 实时消息到达（im-manager 路由，已按对方+技能匹配本会话）：fp 去重后追加并滚到底
   onReceive(msg) {
     if (!msg.fp || this.fpIndex[msg.fp] !== undefined) return
     const me = String((getUserInfo() || {}).userId || '')
@@ -231,6 +275,7 @@ Page({
       mine: String(msg.from) === me,
       content: msg.content,
       status: 'received',
+      isAuto: !!msg.isAuto, // 服务端代发的技能自动回复
       ts: Date.now(),
       timeText: ''
     }

@@ -35,7 +35,7 @@ nearby-pro/
 
 4. 默认端口 8080，试一下分类接口：`curl http://localhost:8080/api/categories`
 
-微信小程序密钥未配置时，`wx.mock=true`（默认）下登录接口用任意 code 都能换取测试身份，方便联调；上线前在 `application.yml` 里关掉 mock 并打开内容安全检测。
+登录与内容安全全部走真实微信接口：必须有可用的小程序 appid/AppSecret 才能登录，本地值同样配在 `application-local.yml`。内容安全检测由 `wx.security-check` 控制，上线前必须为 true。
 
 ## 打开小程序原型
 

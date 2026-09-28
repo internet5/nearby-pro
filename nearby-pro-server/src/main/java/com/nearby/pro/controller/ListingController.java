@@ -8,6 +8,7 @@ import com.nearby.pro.dto.MineItem;
 import com.nearby.pro.dto.NearbyItem;
 import com.nearby.pro.dto.ReportReq;
 import com.nearby.pro.service.ListingService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,19 +31,33 @@ public class ListingController {
 
     private final ListingService listingService;
 
-    /** 附近发布（免登录）：地图主接口，不含联系方式 */
+    /** 附近发布（免登录）：地图主接口，不含联系方式；限流每 IP 每 60 秒 6 次 */
     @GetMapping("/nearby")
     public ApiResult<Map<String, Object>> nearby(
+            HttpServletRequest request,
             @RequestParam double latitude,
             @RequestParam double longitude,
             @RequestParam(required = false) Integer radius,
             @RequestParam(required = false, defaultValue = "0") int categoryId,
             @RequestParam(required = false, defaultValue = "") String tag,
-            @RequestParam(required = false, defaultValue = "") String itemName,
             @RequestParam(required = false, defaultValue = "") String keyword) {
+        listingService.rateLimitNearby(clientIp(request));
         List<NearbyItem> list = listingService.nearby(latitude, longitude, radius,
-                categoryId, tag, itemName, keyword);
+                categoryId, tag, keyword);
         return ApiResult.ok(Map.of("list", list, "total", list.size()));
+    }
+
+    /** 客户端真实 IP：经 nginx 反代，依次取 X-Forwarded-For 首段、X-Real-IP、直连地址 */
+    private String clientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        String realIp = request.getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isBlank()) {
+            return realIp.trim();
+        }
+        return request.getRemoteAddr();
     }
 
     /** 我的发布（需登录）：含下架/过期 */

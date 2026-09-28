@@ -30,12 +30,14 @@ Page({
     api
       .chatSessions()
       .then((data) => {
-        // 按会话方向分两组（组内仍按最新消息时间倒序）；「找我的」排前面
+        // 按会话方向分两组（组内仍按最新消息时间倒序）；「找我的」排前面。
+        // 同一对方按技能拆分会话：key 用 对方+技能 组合，展示时带出技能名
         const toMe = []
         const fromMe = []
         ;(data.list || []).forEach((s) => {
           const item = {
             ...s,
+            key: s.peerId + ':' + (s.listingId || 0),
             timeText: s.lastTime ? formatChatTime(new Date(s.lastTime).getTime()) : ''
           }
           if (s.initiatedByMe) fromMe.push(item)
@@ -56,7 +58,11 @@ Page({
         '&nickname=' +
         encodeURIComponent(d.nickname || '') +
         '&avatarUrl=' +
-        encodeURIComponent(d.avatarUrl || '')
+        encodeURIComponent(d.avatarUrl || '') +
+        '&listingId=' +
+        (d.listingId || 0) +
+        '&title=' +
+        encodeURIComponent(d.title || '')
     })
   }
 })

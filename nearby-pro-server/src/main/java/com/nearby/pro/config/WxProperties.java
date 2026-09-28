@@ -10,9 +10,6 @@ public class WxProperties {
     private String appId = "";
     private String secret = "";
 
-    /** true 时不调微信真实接口，任意 code 换 openid = mock_{code}，本地联调用 */
-    private boolean mock = true;
-
     /** 发布内容安全检测（msgSecCheck）开关，正式上线前必须改为 true */
     private boolean securityCheck = false;
 
@@ -21,4 +18,7 @@ public class WxProperties {
 
     /** token 有效期（天） */
     private int jwtExpireDays = 30;
+
+    /** 订阅消息模板 id（聊天离线提醒），mp 后台申请；留空则不推送 */
+    private String subscribeTemplateId = "";
 }

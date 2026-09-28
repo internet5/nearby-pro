@@ -91,6 +91,13 @@
             <artifactId>gson</artifactId>
         </dependency>
 
+        <!-- 腾讯云 STS 临时密钥：发布图片小程序直传 COS（与红包项目同款 SDK，避免再引依赖） -->
+        <dependency>
+            <groupId>com.tencentcloudapi</groupId>
+            <artifactId>tencentcloud-sdk-java-sts</artifactId>
+            <version>3.1.800</version>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

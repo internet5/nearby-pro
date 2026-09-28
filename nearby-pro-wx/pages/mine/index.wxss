@@ -224,22 +224,41 @@
   border: 1rpx solid var(--line);
 }
 
-.publish {
+/* 意见与建议：整行描边主色入口，突出反馈通道 */
+.feedback-link {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
   margin-top: 48rpx;
-  height: 92rpx;
-  line-height: 92rpx;
-  text-align: center;
-  background: linear-gradient(135deg, var(--primary), var(--primary-deep));
-  color: #FFFFFF;
-  border-radius: 999rpx;
-  font-size: 28rpx;
-  font-weight: 600;
-  box-shadow: 0 14rpx 32rpx rgba(62, 110, 79, 0.32);
+  padding: 30rpx 32rpx;
+  background: var(--primary-soft);
+  border: 2rpx solid var(--primary);
+  border-radius: var(--radius-md);
 }
 
-.feedback-link {
-  margin-top: 28rpx;
-  text-align: center;
-  font-size: 24rpx;
-  color: var(--ink-3);
+.feedback-hover {
+  opacity: 0.85;
+}
+
+.feedback-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.feedback-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--primary-deep);
+}
+
+.feedback-sub {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: var(--primary);
+}
+
+.feedback-arrow {
+  font-size: 40rpx;
+  font-weight: 300;
+  color: var(--primary);
 }

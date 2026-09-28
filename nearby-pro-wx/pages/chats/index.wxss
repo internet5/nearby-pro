@@ -112,6 +112,16 @@
   color: var(--ink-3);
 }
 
+/* 会话关联的技能名：同一对方按技能拆分会话，用技能行区分 */
+.skill-line {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .row2 {
   margin-top: 10rpx;
   display: flex;

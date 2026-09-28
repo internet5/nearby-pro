@@ -53,17 +53,71 @@
   gap: 14rpx;
 }
 
-/* 具体项目按工种分组：组名小字 + 该组的项目 chips */
-.skill-group + .skill-group {
-  margin-top: 24rpx;
+/* 标题输入 + 右上角字数计数 */
+.title-wrap {
+  position: relative;
 }
 
-.skill-group-name {
-  margin-bottom: 12rpx;
-  font-size: 24rpx;
-  font-weight: 600;
+.title-count {
+  position: absolute;
+  top: 50%;
+  right: 26rpx;
+  transform: translateY(-50%);
+  font-size: 22rpx;
   color: var(--ink-3);
-  letter-spacing: 0.04em;
+}
+
+.title-count-max {
+  color: #E4572E;
+}
+
+/* 技能图片九宫格 */
+.img-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.img-item {
+  position: relative;
+  width: 192rpx;
+  height: 192rpx;
+}
+
+.img-thumb {
+  width: 100%;
+  height: 100%;
+  border-radius: 16rpx;
+  background: var(--surface-soft);
+}
+
+.img-del {
+  position: absolute;
+  top: -12rpx;
+  right: -12rpx;
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 40rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: rgba(26, 23, 20, 0.72);
+  color: #ffffff;
+  font-size: 32rpx;
+  box-sizing: border-box;
+}
+
+.img-add {
+  width: 192rpx;
+  height: 192rpx;
+  line-height: 176rpx;
+  text-align: center;
+  font-size: 64rpx;
+  font-weight: 300;
+  color: var(--ink-3);
+  background: var(--surface-soft);
+  border: 2rpx dashed var(--line);
+  border-radius: 16rpx;
+  box-sizing: border-box;
 }
 
 .chip {
@@ -116,6 +170,11 @@
 .area {
   height: 220rpx;
   line-height: 1.6;
+}
+
+/* 自动回复用的小号多行输入 */
+.area-sm {
+  height: 160rpx;
 }
 
 .loc {
@@ -180,6 +239,10 @@
   font-size: 30rpx;
   font-weight: 700;
   box-shadow: 0 14rpx 32rpx rgba(62, 110, 79, 0.32);
+}
+
+.submit-disabled {
+  opacity: 0.6;
 }
 
 .note {

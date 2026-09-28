@@ -18,72 +18,10 @@
   height: 100%;
 }
 
-/* ---- 顶栏：定位胶囊 + 品牌章 ---- */
-.masthead {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 6;
-  padding: 24rpx 32rpx 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.loc {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1rpx solid var(--primary-line);
-  padding: 16rpx 26rpx;
-  border-radius: 999rpx;
-  box-shadow: 0 8rpx 28rpx rgba(62, 110, 79, 0.08);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-}
-
-.loc-pin {
-  width: 24rpx;
-  height: 24rpx;
-  border-radius: 50% 50% 50% 0;
-  background: var(--primary);
-  transform: rotate(-45deg);
-  flex-shrink: 0;
-  position: relative;
-}
-
-.loc-pin::after {
-  content: "";
-  position: absolute;
-  width: 9rpx;
-  height: 9rpx;
-  border-radius: 50%;
-  background: #fff;
-  top: 7.5rpx;
-  left: 7.5rpx;
-}
-
-.loc-text {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.loc-count {
-  font-size: 22rpx;
-  color: var(--primary);
-  font-weight: 700;
-  background: var(--primary-soft);
-  padding: 4rpx 16rpx;
-  border-radius: 999rpx;
-}
-
 /* ---- 筛选 ---- */
 .filters {
   position: absolute;
-  top: 132rpx;
+  top: 24rpx;
   left: 0;
   right: 0;
   z-index: 5;
@@ -169,17 +107,18 @@
 .sheet {
   flex-shrink: 0;
   background: var(--bg);
-  padding: 12rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
+  /* 底部安全区只保留一半：面板里没有贴底的按钮，纯文字可以离 Home 横条更近 */
+  padding: 6rpx 32rpx calc(8rpx + env(safe-area-inset-bottom) / 2);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   box-shadow: 0 -8rpx 40rpx rgba(62, 110, 79, 0.1);
 }
 
 .handle {
   width: 72rpx;
-  height: 8rpx;
+  height: 6rpx;
   border-radius: 999rpx;
   background: var(--primary-line);
-  margin: 4rpx auto 18rpx;
+  margin: 0 auto 12rpx;
 }
 
 .sheet-full {
@@ -191,13 +130,13 @@
 .toolbar {
   display: flex;
   gap: 16rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: 14rpx;
 }
 
 .tool {
   flex: 1;
-  height: 80rpx;
-  line-height: 80rpx;
+  height: 64rpx;
+  line-height: 64rpx;
   text-align: center;
   background: rgba(255, 255, 255, 0.7);
   border-radius: 999rpx;
@@ -216,25 +155,25 @@
 }
 
 .hint-num {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: 700;
 }
 
 .hint-sub {
-  margin-top: 10rpx;
+  margin-top: 6rpx;
   font-size: 24rpx;
   color: var(--ink-3);
 }
 
 .hint {
-  padding: 24rpx 0 16rpx;
+  padding: 6rpx 0 2rpx;
   text-align: center;
 }
 
 .card {
   background: var(--surface);
   border-radius: var(--radius-md);
-  padding: 32rpx;
+  padding: 26rpx 28rpx 24rpx;
   box-shadow: var(--shadow-card);
   border: 1rpx solid var(--primary-line);
   position: relative;
@@ -305,9 +244,9 @@
 }
 
 .card-go {
-  margin-top: 24rpx;
-  height: 84rpx;
-  line-height: 84rpx;
+  margin-top: 18rpx;
+  height: 72rpx;
+  line-height: 72rpx;
   text-align: center;
   background: var(--primary-soft);
   color: var(--primary-deep);

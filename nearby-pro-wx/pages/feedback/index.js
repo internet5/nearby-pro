@@ -1,4 +1,8 @@
 const api = require('../../utils/api')
+const { limitInput } = require('../../utils/input')
+
+// 反馈内容字数上限：wxml 里对应 maxlength="-1"，截断在 onInput（原因见 utils/input.js）
+const CONTENT_MAX = 300
 
 Page({
   data: {
@@ -7,11 +11,11 @@ Page({
   },
 
   onInput(e) {
-    this.setData({ content: e.detail.value })
+    this.setData({ content: limitInput(e.detail.value, CONTENT_MAX) })
   },
 
   onSubmit() {
-    const content = (this.data.content || '').trim()
+    const content = (this.data.content || '').trim().slice(0, CONTENT_MAX)
     if (!content) {
       wx.showToast({ title: '写点什么再提交吧', icon: 'none' })
       return

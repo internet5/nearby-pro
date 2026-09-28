@@ -27,6 +27,33 @@ var ERROR_LOGIN_VERIFY_FAILED = 1025 // JWT 校验失败 -> 需 forceLogin 重�
 // ===== 消息业务类型（Protocal.typeu 透传落库）=====
 var TYPEU_TEXT = 1 // 文本消息（typeu=-1 表示未设置）
 
+// ===== 消息信封：dataContent 携带技能上下文（与服务端 ChatService.buildEnvelope 对齐）=====
+// 格式 {"v":1,"lid":123,"c":"文本","a":0}；裸文本（老客户端/老消息）解析返回 null，lid 视为 0
+function buildEnvelope(listingId, text, auto) {
+  return JSON.stringify({
+    v: 1,
+    lid: listingId || 0,
+    c: text || '',
+    a: auto ? 1 : 0
+  })
+}
+
+function parseEnvelope(dataContent) {
+  if (!dataContent || dataContent.charAt(0) !== '{') {
+    return null
+  }
+  var obj = null
+  try {
+    obj = JSON.parse(dataContent)
+  } catch (e) {
+    return null
+  }
+  if (!obj || obj.v !== 1 || typeof obj.c !== 'string') {
+    return null
+  }
+  return { lid: obj.lid || 0, content: obj.c, auto: !!obj.a }
+}
+
 // 生成消息指纹 fp：时间戳 + 随机串。
 // 客户端 QoS 包必须自带 fp（服务端不会为客户端消息代生成），全局唯一即可
 function genFp() {
@@ -75,11 +102,12 @@ function buildKeepAlive() {
 }
 
 // C2C 文本消息（QoS 可靠传输，等接收方/服务端伪应答回执）。
-// fp 可选：外部先 genFp() 拿到指纹再传入，便于发送方匹配回执；缺省自动生成
-function buildSendText(fromUserId, toUserId, text, fp) {
+// fp 可选：外部先 genFp() 拿到指纹再传入，便于发送方匹配回执；缺省自动生成。
+// listingId 可选：技能会话上下文，打进 dataContent 信封（lid=0 表示无技能的普通会话）
+function buildSendText(fromUserId, toUserId, text, fp, listingId) {
   return buildProtocal(
     TYPE_COMMON_DATA,
-    text,
+    buildEnvelope(listingId, text, false),
     true,
     fp || genFp(),
     String(fromUserId),
@@ -119,5 +147,7 @@ module.exports = {
   buildKeepAlive: buildKeepAlive,
   buildSendText: buildSendText,
   buildRecived: buildRecived,
-  buildLogout: buildLogout
+  buildLogout: buildLogout,
+  buildEnvelope: buildEnvelope,
+  parseEnvelope: parseEnvelope
 }

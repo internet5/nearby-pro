@@ -1,6 +1,24 @@
 -- 增量迁移：私聊消息表（MobileIMSDK C2C 落库），2026-09
 -- 幂等脚本，可直接对已有库重复执行；严禁对线上库执行 nearby-init.sql（会 DROP SCHEMA 清库）
 -- 执行：docker exec -i postgis psql -U root -d nearby_pro < upgrade-202609-chat.sql
+CREATE TABLE public.favorites (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    listing_id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE SEQUENCE public.favorites_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.favorites_id_seq OWNED BY public.favorites.id;
+ALTER TABLE ONLY public.favorites ALTER COLUMN id SET DEFAULT nextval('public.favorites_id_seq'::regclass);
+ALTER TABLE ONLY public.favorites ADD CONSTRAINT favorites_pkey PRIMARY KEY (id);
+CREATE UNIQUE INDEX favorites_user_listing_uq ON public.favorites USING btree (user_id, listing_id);
 
 CREATE SEQUENCE IF NOT EXISTS public.chat_messages_id_seq
     START WITH 1

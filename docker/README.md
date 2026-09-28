@@ -103,5 +103,5 @@ cd docker/middleware-deploy/sql
   空库 / 已有旧数据的库都能整段重复执行、无 DROP 报错。
 - 跨容器访问全走宿主机端口（172.17.0.1），因此 5432/6379 对外网是暴露的，
   云服务器安全组务必只对可信 IP 放行这两个端口（80/443 对公网开放）。
-- 上线前在 `docker/app-deploy/docker-compose.yml` 调整三项：`WX_MOCK=false`、`WX_SECURITY_CHECK=true`、
-  `WX_JWT_SECRET` 换随机长串；小程序 request 合法域名配 `https://red-packet.com.cn`。
+- 上线前在 `docker/app-deploy/docker-compose.yml` 把 `WX_JWT_SECRET` 换随机长串；
+  小程序 request 合法域名配 `https://red-packet.com.cn`。

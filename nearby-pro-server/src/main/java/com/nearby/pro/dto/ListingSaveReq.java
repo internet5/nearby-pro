@@ -15,28 +15,31 @@ public class ListingSaveReq {
     @NotNull(message = "请选择分类")
     private Integer categoryId;
 
-    /** 工种，最多 3 个 */
+    /** 预设标签，0~3 个，可跳过 */
     private List<String> tags = new ArrayList<>();
 
-    /** 具体会做的项目，按工种分组 */
+    /** 已废弃的三级字典遗留字段：老客户端可能还传，服务端不再校验，落库固定 [] */
     private List<ItemGroup> items = new ArrayList<>();
 
     @NotBlank(message = "请填写技能名称")
-    @Size(max = 40, message = "技能名称最长 40 字")
+    @Size(max = 8, message = "技能名称最长 8 个字")
     private String title;
 
     @Size(max = 500, message = "补充说明最长 500 字")
     private String description = "";
 
-    /** MVP 暂无图片上传，前端固定传 [] */
+    /** 图片为 COS 直传后的 URL，最多 3 张 */
+    @Size(max = 3, message = "图片最多 3 张")
     private List<String> photoUrls = new ArrayList<>();
 
-    @NotBlank(message = "请选择联系方式类型")
-    private String contactType;
+    /** 自动回复内容：有别人首次咨询该技能时由服务端以发布人身份发送 */
+    @Size(max = 200, message = "自动回复最长 200 字")
+    private String autoReply = "";
 
-    @NotBlank(message = "请填写联系方式")
-    @Size(max = 64, message = "联系方式最长 64 字")
-    private String contactValue;
+    /** 联系方式已不再收集：仅老客户端会传，兼容保留字段 */
+    private String contactType = "";
+
+    private String contactValue = "";
 
     @NotNull(message = "请选择服务位置")
     private Double latitude;

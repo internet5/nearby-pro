@@ -88,6 +88,7 @@ function fireQos(fp) {
     if (cur.tries < QOS_RETRY_MAX) {
       fireQos(fp)
     } else {
+      console.error('[IM] 发送重试耗尽 fp =', fp)
       delete state.qosPending[fp]
       if (cur.onFail) {
         cur.onFail()
@@ -102,6 +103,7 @@ function handleAck(fp) {
   if (!item) {
     return
   }
+  console.log('[IM] 消息已送达 fp =', fp)
   delete state.qosPending[fp]
   if (item.timer) {
     clearTimeout(item.timer)
@@ -181,6 +183,7 @@ function handleLoginResponse(dataContent) {
   } catch (e) {
     code = null
   }
+  console.log('[IM] 登录响应 code =', code, code === protocal.ERROR_CODE_OK ? '(成功)' : '')
   if (code !== protocal.ERROR_CODE_OK) {
     // token 失效：清登录态重登一次再握手（每次连接最多重试 3 次，防 1025 死循环）
     if (code === protocal.ERROR_LOGIN_VERIFY_FAILED && state.loginTries < 3) {
@@ -252,6 +255,7 @@ function handleRawText(text) {
       }
     }
     if (state.onMessage) {
+      console.log('[IM] 收到消息 from =', p.from)
       state.onMessage({
         from: p.from,
         to: p.to,
@@ -305,10 +309,12 @@ function doConnect() {
   }
   state.loginTries = 0 // 每次新连接重新计数，同一次握手中的 1025 重登最多 3 次
   setStatus('connecting')
+  console.log('[IM] 连接', config.IM_WS_URL)
   var task = wx.connectSocket({
     url: config.IM_WS_URL,
-    fail: function () {
+    fail: function (err) {
       // 域名不合法/网络失败等：走重连退避
+      console.error('[IM] connectSocket 失败', err && err.errMsg)
       setStatus('closed')
       scheduleReconnect()
     }
@@ -322,6 +328,7 @@ function doConnect() {
   state.task = task
   task.onOpen(function () {
     // 握手路径 /websocket 已在 URL 中，onOpen 后直接发登录首包
+    console.log('[IM] WebSocket 已连上，发登录首包')
     if (!sendLoginFrame()) {
       // 无 token：让 request 层静默登录后再发
       require('../request')
@@ -348,7 +355,8 @@ function doConnect() {
   task.onError(function () {
     // onError 后通常紧跟 onClose，重连统一在 onClose 触发；这里只兜底清理
   })
-  task.onClose(function () {
+  task.onClose(function (res) {
+    console.log('[IM] 连接断开', res && res.code, res && res.reason)
     if (state.task !== task) {
       // 旧连接的遗留回调，忽略
       return

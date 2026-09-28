@@ -4,7 +4,7 @@ import lombok.Data;
 
 import java.time.OffsetDateTime;
 
-/** 附近查询的 SQL 投影：tags/items 以 JSON 文本返回，service 层再转结构 */
+/** 附近查询的 SQL 投影：tags 以 JSON 文本返回，service 层再转结构 */
 @Data
 public class NearbyRow {
 
@@ -16,7 +16,6 @@ public class NearbyRow {
     private String categoryCode;
     private String categoryName;
     private String tags;
-    private String items;
     private String title;
     private Double latitude;
     private Double longitude;

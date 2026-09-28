@@ -75,6 +75,20 @@
   gap: 14rpx;
 }
 
+/* 技能图片九宫格：点击全屏预览 */
+.photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.photo-thumb {
+  width: 192rpx;
+  height: 192rpx;
+  border-radius: 16rpx;
+  background: var(--surface-soft);
+}
+
 .tag {
   padding: 10rpx 24rpx;
   background: var(--primary-soft);
@@ -143,17 +157,25 @@
   margin-top: 48rpx;
   display: flex;
   justify-content: center;
-  gap: 48rpx;
+  gap: 24rpx;
 }
 
+/* 收藏/举报：描边胶囊按钮，次级于底部主操作但明显可点 */
 .link {
-  font-size: 24rpx;
-  color: var(--ink-3);
+  padding: 14rpx 44rpx;
+  font-size: 26rpx;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1rpx solid var(--line);
+  border-radius: 999rpx;
+  box-shadow: var(--shadow-card);
 }
 
 /* 已收藏态：主色高亮星标 */
 .link-on {
   color: var(--primary-deep);
+  background: var(--primary-soft);
+  border-color: var(--primary-line);
   font-weight: 600;
 }
 
