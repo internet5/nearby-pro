@@ -37,12 +37,11 @@ public class ListingController {
             HttpServletRequest request,
             @RequestParam double latitude,
             @RequestParam double longitude,
-            @RequestParam(required = false) Integer radius,
             @RequestParam(required = false, defaultValue = "0") int categoryId,
             @RequestParam(required = false, defaultValue = "") String tag,
             @RequestParam(required = false, defaultValue = "") String keyword) {
         listingService.rateLimitNearby(clientIp(request));
-        List<NearbyItem> list = listingService.nearby(latitude, longitude, radius,
+        List<NearbyItem> list = listingService.nearby(latitude, longitude,
                 categoryId, tag, keyword);
         return ApiResult.ok(Map.of("list", list, "total", list.size()));
     }

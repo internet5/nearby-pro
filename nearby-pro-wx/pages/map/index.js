@@ -1,16 +1,14 @@
 const { currentCategories, tagList, iconForCode } = require('../../utils/categories')
 const { formatDistance } = require('../../utils/geo')
 const api = require('../../utils/api')
-const { dismissPublishPrompt, getPublishPromptDismissedAt, hasPublished } = require('../../utils/store')
+const { hasPublished } = require('../../utils/store')
 const { openDetail } = require('../../utils/listings')
+const { DEFAULT_COVER } = require('../../utils/share')
 
 const DEFAULT_CENTER = {
   latitude: 30.657486,
   longitude: 104.065735
 }
-
-// 数据拉取半径：后端上限 20km（超了会被截断）；每分类请求各自拉取
-const FETCH_RADIUS = 20000
 
 // 网格占位：相邻/同点技能各占一格，格子跨度约 6~8 米（随纬度）以贴近真实坐标；
 // 代价是放大到 18 级时相邻标记仅隔 14px 会互相压边（产品确认接受）；
@@ -72,13 +70,11 @@ Page({
     this.maybeShowPrompt()
   },
 
-  // 发布引导弹窗：只对没发布过技能的用户弹，每次启动最多一次，关闭后 7 天静默
+  // 发布引导弹窗：只对没发布过技能的用户弹，每次启动最多一次
   maybeShowPrompt() {
     const app = getApp()
     if (app.globalData.publishPromptShown) return
     if (hasPublished()) return
-    const dismissedAt = getPublishPromptDismissedAt()
-    if (dismissedAt && Date.now() - dismissedAt < 7 * 24 * 3600 * 1000) return
     app.globalData.publishPromptShown = true
     // 略等地图渲染完再弹，避免启动瞬间遮挡
     setTimeout(() => this.setData({ showPrompt: true }), 500)
@@ -92,7 +88,6 @@ Page({
 
   onPromptClose() {
     this.setData({ showPrompt: false })
-    dismissPublishPrompt()
   },
 
   // 空函数：catchtap 阻止点弹窗卡片时冒泡到遮罩误关
@@ -156,7 +151,7 @@ Page({
       })
       return
     }
-    const params = { latitude: loc.latitude, longitude: loc.longitude, radius: FETCH_RADIUS }
+    const params = { latitude: loc.latitude, longitude: loc.longitude }
     if (categoryId) params.categoryId = categoryId
     api.nearby(params)
       .then((nearbyData) => {
@@ -430,7 +425,8 @@ Page({
   onShareAppMessage() {
     return {
       title: '找附近的手艺人，维修保洁家教跟拍都在地图上',
-      path: '/pages/map/index'
+      path: '/pages/map/index',
+      imageUrl: DEFAULT_COVER
     }
   }
 })

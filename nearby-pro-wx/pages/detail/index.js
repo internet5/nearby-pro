@@ -1,7 +1,7 @@
 const api = require('../../utils/api')
 const { formatDistance } = require('../../utils/geo')
 const { askChatSubscribe } = require('../../utils/subscribe')
-const { skillCard } = require('../../utils/share')
+const { skillCard, DEFAULT_COVER } = require('../../utils/share')
 const { fetchWalkingRoute } = require('../../utils/route')
 
 // 举报理由：文案与后端 reason 枚举一一对应
@@ -18,8 +18,7 @@ Page({
     missing: false,
     locMarkers: [],
     locPolylines: [],
-    locIncludePoints: [],
-    remainDays: null
+    locIncludePoints: []
   },
 
   onLoad(query) {
@@ -64,11 +63,7 @@ Page({
               anchor: { x: 0.5, y: 0.5 }
             }]
           : []
-        // 有效期剩余天数，向上取整；仅上架中的发布展示
-        const remainDays = item.expireTime
-          ? Math.max(0, Math.ceil((new Date(item.expireTime).getTime() - Date.now()) / 86400000))
-          : null
-        this.setData({ item: decorated, missing: false, locMarkers, remainDays }, () => this.applyRoute())
+        this.setData({ item: decorated, missing: false, locMarkers }, () => this.applyRoute())
       })
       .catch(() => {
         // 失败原因（已删除/下架/封禁）已由请求层 toast，这里切到空态
@@ -197,7 +192,8 @@ Page({
     }
     return {
       title: '找附近的手艺人，上附近职人',
-      path: '/pages/map/index'
+      path: '/pages/map/index',
+      imageUrl: DEFAULT_COVER
     }
   },
 

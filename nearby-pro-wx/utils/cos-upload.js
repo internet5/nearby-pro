@@ -204,8 +204,9 @@ function mimeOf(ext) {
  * filePath 来自 wx.chooseMedia 的 tempFilePath（临时文件）或已上传过的 https 地址。
  */
 function uploadImage(filePath) {
-  if (/^https?:\/\//.test(filePath)) {
-    return Promise.resolve(filePath) // 编辑场景回填的旧图，无需重复上传
+  // 只对已有的 https 网络图（回填的 COS 图）放行；微信临时路径形如 http://tmp/、wxfile://，仍需上传
+  if (/^https:\/\//.test(filePath)) {
+    return Promise.resolve(filePath)
   }
   return getCredentials().then(function (cred) {
     var ext = ''

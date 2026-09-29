@@ -5,8 +5,7 @@ const { formatChatTime } = require('../../utils/time')
 
 Page({
   data: {
-    toMe: [],   // 找我的（对方先开口的会话）
-    fromMe: [], // 我发起的
+    sessions: [], // 会话列表（单列表，按最后聊天时间倒序）
     loading: true
   },
 
@@ -30,20 +29,21 @@ Page({
     api
       .chatSessions()
       .then((data) => {
-        // 按会话方向分两组（组内仍按最新消息时间倒序）；「找我的」排前面。
-        // 同一对方按技能拆分会话：key 用 对方+技能 组合，展示时带出技能名
-        const toMe = []
-        const fromMe = []
-        ;(data.list || []).forEach((s) => {
-          const item = {
-            ...s,
-            key: s.peerId + ':' + (s.listingId || 0),
-            timeText: s.lastTime ? formatChatTime(new Date(s.lastTime).getTime()) : ''
-          }
-          if (s.initiatedByMe) fromMe.push(item)
-          else toMe.push(item)
+        // 单列表：技能名（+方向标签）主导，用户名次要；按最后聊天时间倒序
+        const sessions = (data.list || []).map((s) => ({
+          ...s,
+          key: s.peerId + ':' + (s.listingId || 0),
+          timeText: s.lastTime ? formatChatTime(new Date(s.lastTime).getTime()) : '',
+          // 方向：对方先开口=找我；我先开口=我找
+          directionLabel: s.initiatedByMe ? '我找' : '找我',
+          directionClass: s.initiatedByMe ? 'dir-out' : 'dir-in'
+        }))
+        sessions.sort((a, b) => {
+          const ta = a.lastTime ? new Date(a.lastTime).getTime() : 0
+          const tb = b.lastTime ? new Date(b.lastTime).getTime() : 0
+          return tb - ta
         })
-        this.setData({ toMe, fromMe, loading: false })
+        this.setData({ sessions, loading: false })
         refreshChatBadge()
       })
       .catch(() => this.setData({ loading: false }))

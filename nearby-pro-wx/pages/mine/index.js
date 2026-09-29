@@ -2,7 +2,7 @@ const api = require('../../utils/api')
 const { getUserInfo } = require('../../utils/request')
 const { joinList } = require('../../utils/categories')
 const { openDetail, focusOnMap } = require('../../utils/listings')
-const { skillCard } = require('../../utils/share')
+const { skillCard, DEFAULT_COVER } = require('../../utils/share')
 
 const STATUS_TEXT = {
   1: '上架中',
@@ -100,7 +100,7 @@ Page({
     api
       .relistListing(Number(e.currentTarget.dataset.listingId))
       .then(() => {
-        wx.showToast({ title: '已重新上架，有效期 30 天', icon: 'none' })
+        wx.showToast({ title: '已重新上架', icon: 'none' })
         this.loadList()
       })
       .catch(() => {})
@@ -124,6 +124,10 @@ Page({
     })
   },
 
+  onEditProfile() {
+    wx.navigateTo({ url: '/pages/profile/index' })
+  },
+
   onFeedback() {
     wx.navigateTo({ url: '/pages/feedback/index' })
   },
@@ -144,7 +148,8 @@ Page({
     }
     return {
       title: '找附近的手艺人，上附近职人',
-      path: '/pages/map/index'
+      path: '/pages/map/index',
+      imageUrl: DEFAULT_COVER
     }
   }
 })

@@ -92,15 +92,15 @@
   </view>
 
   <view class="submit {{submitting ? 'submit-disabled' : ''}}" bindtap="onSubmit">{{editId ? '保存修改' : '发布到地图'}}</view>
-  <view class="note">发布后可一键转发到微信群、朋友圈，让附近的人直接找到你。保留 30 天，可在「我的」里提前下架。</view>
+  <view class="note">发布后可一键分享到微信群、朋友圈，让附近的人直接找到你。可在「我的」里提前下架。</view>
 </view>
 
 <view class="page done-page" wx:else>
   <view class="done-card">
     <view class="done-icon">✓</view>
     <view class="done-title">已发布到地图</view>
-    <view class="done-sub">转发到微信群或朋友圈，附近需要「{{publishedTitle}}」的人马上就能找到你。</view>
-    <button class="btn-reset done-share" open-type="share">转发技能卡片</button>
+    <view class="done-sub">分享到微信群或朋友圈，附近需要「{{publishedTitle}}」的人马上就能找到你。</view>
+    <button class="btn-reset done-share" open-type="share">分享技能卡片</button>
     <view class="done-map" bindtap="onGoMap">查看地图</view>
   </view>
 </view>

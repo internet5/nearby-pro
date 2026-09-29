@@ -92,7 +92,7 @@
   <view class="mask" wx:if="{{showPrompt}}" bindtap="onPromptClose">
     <view class="prompt" catchtap="noopPrompt">
       <view class="prompt-title">会手艺？让附近的人找到你</view>
-      <view class="prompt-sub">发布你的技能，一键转发到微信群、朋友圈，附近有需要的人看到直接联系你。</view>
+      <view class="prompt-sub">发布你的技能，一键分享到微信群、朋友圈，附近有需要的人看到直接联系你。</view>
       <view class="prompt-btn" bindtap="onPromptGo">发布我的技能</view>
       <view class="prompt-later" bindtap="onPromptClose">先随便看看</view>
     </view>

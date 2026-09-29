@@ -48,6 +48,22 @@
   line-height: 1.6;
 }
 
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.hero-edit {
+  flex-shrink: 0;
+  margin-left: 12rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 8rpx 22rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.55);
+  border-radius: 999rpx;
+}
+
 /* 发布 / 收藏 切换 */
 .tabs {
   margin-top: 28rpx;

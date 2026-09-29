@@ -34,18 +34,6 @@
   line-height: 1.7;
 }
 
-/* 分组标题：找我的 / 我发起的 */
-.group-title {
-  margin: 36rpx 4rpx 0;
-  font-size: 24rpx;
-  font-weight: 600;
-  color: var(--ink-3);
-}
-
-.group-title + .session {
-  margin-top: 20rpx;
-}
-
 .session {
   display: flex;
   align-items: center;
@@ -96,11 +84,13 @@
   gap: 16rpx;
 }
 
-.name {
-  font-size: 30rpx;
-  font-weight: 700;
+/* 三行结构：技能名主导 → 用户名 → 最后消息；右侧对齐 时间/方向标签/未读 */
+.skill-name {
   flex: 1;
   min-width: 0;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -112,18 +102,54 @@
   color: var(--ink-3);
 }
 
-/* 会话关联的技能名：同一对方按技能拆分会话，用技能行区分 */
-.skill-line {
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  color: var(--primary);
+.row2 {
+  margin-top: 6rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-size: 24rpx;
+  color: var(--ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.row2 {
-  margin-top: 10rpx;
+.dir-tag {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  line-height: 1;
+}
+
+.dir-tag::before {
+  content: '';
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.dir-in {
+  color: #C7792B;
+  background: #FAEDDA;
+}
+
+.dir-out {
+  color: var(--ink-3);
+  background: var(--surface-soft);
+}
+
+.row3 {
+  margin-top: 6rpx;
   display: flex;
   align-items: center;
   gap: 16rpx;
@@ -132,8 +158,8 @@
 .last {
   flex: 1;
   min-width: 0;
-  font-size: 26rpx;
-  color: var(--ink-2);
+  font-size: 24rpx;
+  color: var(--ink-3);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

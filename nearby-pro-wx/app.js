@@ -1,6 +1,8 @@
 const { ensureLogin } = require('./utils/request')
 const { loadFromApi } = require('./utils/categories')
 const { refreshChatBadge } = require('./utils/badge')
+const api = require('./utils/api')
+const { hasPublished, markPublished } = require('./utils/store')
 const imManager = require('./utils/im/im-manager')
 
 // 早期纯本地 / 联调期的存储 key，接入后端后一次性清掉
@@ -16,7 +18,18 @@ App({
     LEGACY_KEYS.forEach((key) => wx.removeStorageSync(key))
     // 静默登录 + 分类热更新：失败不打扰，接口层会在需要时自动重试登录
     ensureLogin()
-      .then(refreshChatBadge)
+      .then(() => {
+        refreshChatBadge()
+        // 登录后同步「是否发布过」到本地：换设备时本地标记缺失，靠后端校正，避免重复弹发布引导。
+        // 仅当本机无标记才查一次；发布过的用户同步后本地短路，不再查
+        if (!hasPublished()) {
+          api.mineList()
+            .then((data) => {
+              if (data && data.total > 0) markPublished()
+            })
+            .catch(() => {})
+        }
+      })
       .catch(() => {})
     loadFromApi().catch(() => {})
     // 实时收到消息即刷新「消息」tab 角标（连接懒建立，进入聊天相关页后才会生效）

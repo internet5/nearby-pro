@@ -7,7 +7,7 @@ function loadCategories() {
   return request({ url: '/api/categories' })
 }
 
-/** 附近发布：params = { latitude, longitude, radius?, categoryId?, tag? }；限流 60 秒 6 次/IP */
+/** 附近发布：params = { latitude, longitude, categoryId?, tag? }；限流 60 秒 6 次/IP */
 function nearby(params) {
   return request({ url: '/api/listings/nearby', data: params })
 }
@@ -52,6 +52,13 @@ function deleteListing(id) {
 /** 我的发布（含下架/过期） */
 function mineList() {
   return ensureLogin().then(() => request({ url: '/api/listings/mine' }))
+}
+
+/** 更新头像昵称：payload = { nickname, avatarUrl }，两者可空 */
+function updateProfile(payload) {
+  return ensureLogin().then(() =>
+    request({ url: '/api/user/profile', method: 'PUT', data: payload })
+  )
 }
 
 /** 举报：reason = fake | spam | illegal | other */
@@ -135,6 +142,7 @@ module.exports = {
   relistListing,
   deleteListing,
   mineList,
+  updateProfile,
   report,
   addFeedback,
   addFavorite,

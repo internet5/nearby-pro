@@ -3,7 +3,7 @@ const api = require('../../utils/api')
 const cos = require('../../utils/cos-upload')
 const { markPublished } = require('../../utils/store')
 const { limitInput, countInput } = require('../../utils/input')
-const { skillCard } = require('../../utils/share')
+const { skillCard, DEFAULT_COVER } = require('../../utils/share')
 
 // 单张图片上限：COS 侧限制加上小程序压缩，超了直接拒绝避免上传白等
 const MAX_IMAGES = 3
@@ -313,7 +313,8 @@ Page({
     }
     return {
       title: '找附近的手艺人，上附近职人',
-      path: '/pages/map/index'
+      path: '/pages/map/index',
+      imageUrl: DEFAULT_COVER
     }
   }
 })

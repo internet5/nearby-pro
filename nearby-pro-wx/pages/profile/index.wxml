@@ -1,0 +1,30 @@
+<view class="page">
+  <view class="card">
+    <view class="field">
+      <view class="field-label">头像</view>
+      <view class="avatar-row">
+        <view class="avatar-wrap">
+          <image wx:if="{{avatarUrl}}" class="avatar-img" src="{{avatarUrl}}" mode="aspectFill" />
+          <view wx:else class="avatar-placeholder">+</view>
+          <button class="avatar-pick" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar"></button>
+        </view>
+        <view class="avatar-tip">点击设置头像，可用微信头像或从相册/拍照上传</view>
+      </view>
+    </view>
+
+    <view class="field">
+      <view class="field-label">昵称</view>
+      <input
+        class="nickname-input"
+        type="nickname"
+        placeholder="请输入昵称"
+        value="{{nickname}}"
+        maxlength="30"
+        bindinput="onNicknameInput"
+      />
+      <view class="field-tip">点开键盘上方可一键填入微信昵称，也可手动输入</view>
+    </view>
+  </view>
+
+  <view class="save-btn {{saving ? 'save-disabled' : ''}}" bindtap="onSave">保存</view>
+</view>

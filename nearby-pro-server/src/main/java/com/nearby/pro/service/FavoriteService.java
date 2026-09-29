@@ -14,7 +14,6 @@ import com.nearby.pro.mapper.ListingMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -38,8 +37,7 @@ public class FavoriteService {
         if (listing == null) {
             throw new ApiException("发布不存在或已删除");
         }
-        if (listing.getStatus() != Listing.STATUS_ACTIVE
-                || !listing.getExpireAt().isAfter(OffsetDateTime.now())) {
+        if (listing.getStatus() != Listing.STATUS_ACTIVE) {
             throw new ApiException("该发布已下架，无法收藏");
         }
         Long exists = favoriteMapper.selectCount(new LambdaQueryWrapper<Favorite>()
@@ -61,7 +59,7 @@ public class FavoriteService {
                 .eq(Favorite::getListingId, listingId));
     }
 
-    /** 我的收藏：按收藏时间倒序最多 100 条，只保留仍在上架中的（过期/下架的收藏自然消失） */
+    /** 我的收藏：按收藏时间倒序最多 100 条，只保留仍在上架中的（下架的收藏自然消失） */
     public List<FavoriteItem> list(long userId) {
         List<Favorite> favorites = favoriteMapper.selectList(new LambdaQueryWrapper<Favorite>()
                 .eq(Favorite::getUserId, userId)
@@ -75,13 +73,11 @@ public class FavoriteService {
                 .collect(Collectors.toMap(Listing::getId, Function.identity()));
         Map<Integer, Category> categories = categoryMapper.selectList(null).stream()
                 .collect(Collectors.toMap(Category::getId, Function.identity()));
-        OffsetDateTime now = OffsetDateTime.now();
         return favorites.stream()
                 .map(Favorite::getListingId)
                 .map(listings::get)
                 .filter(Objects::nonNull)
-                .filter(listing -> listing.getStatus() == Listing.STATUS_ACTIVE
-                        && listing.getExpireAt().isAfter(now))
+                .filter(listing -> listing.getStatus() == Listing.STATUS_ACTIVE)
                 .map(listing -> {
                     FavoriteItem item = new FavoriteItem();
                     item.setId(listing.getId());

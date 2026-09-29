@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -41,7 +42,8 @@ import java.util.stream.Collectors;
 public class ListingService {
 
     private static final int MAX_ACTIVE_COUNT = 3;
-    private static final int VALID_DAYS = 30;
+    // 发布不再自动过期：expire_at 仅作占位满足数据库 NOT NULL，设为远未来
+    private static final OffsetDateTime FAR_FUTURE = OffsetDateTime.of(2099, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     private static final List<String> REPORT_REASONS = List.of("fake", "spam", "illegal", "other");
 
     private final ListingMapper listingMapper;
@@ -54,7 +56,7 @@ public class ListingService {
 
     // ---- 发布 / 更新 ----
 
-    /** 发布技能：校验内容 -> 内容安全 -> 上架名额 -> 落库（30 天有效期） */
+    /** 发布技能：校验内容 -> 内容安全 -> 上架名额 -> 落库 */
     public Long create(long userId, ListingSaveReq req) {
         User user = requireUser(userId);
         Category category = requireCategory(req.getCategoryId());
@@ -67,7 +69,7 @@ public class ListingService {
         listing.setUserId(userId);
         applyContent(listing, req);
         listing.setStatus(Listing.STATUS_ACTIVE);
-        listing.setExpireAt(OffsetDateTime.now().plusDays(VALID_DAYS));
+        listing.setExpireAt(FAR_FUTURE);
         listing.setViewCount(0);
         listingMapper.insert(listing);
         return listing.getId();
@@ -94,7 +96,7 @@ public class ListingService {
         listingMapper.updateById(listing);
     }
 
-    /** 重新上架：状态 2/3 -> 1，刷新 30 天有效期；受上架名额约束 */
+    /** 重新上架：状态 2/3 -> 1；受上架名额约束 */
     public void relist(long userId, long id) {
         Listing listing = requireOwned(userId, id);
         if (listing.getStatus() == Listing.STATUS_ACTIVE) {
@@ -107,7 +109,7 @@ public class ListingService {
             throw new ApiException("上架中的已满 " + MAX_ACTIVE_COUNT + " 条，先下架一条");
         }
         listing.setStatus(Listing.STATUS_ACTIVE);
-        listing.setExpireAt(OffsetDateTime.now().plusDays(VALID_DAYS));
+        listing.setExpireAt(FAR_FUTURE);
         listingMapper.updateById(listing);
     }
 
@@ -125,21 +127,20 @@ public class ListingService {
     private static final int QUOTA_PER_CATEGORY = 30;
 
     /**
-     * 附近发布：radius 默认 3000 米，最大 20000。
-     * 不带筛选参数（地图页「全部分类」主拉取）→ 配额模式：半径内每分类各取最近 20 条。
-     * 带任一筛选参数（切一级分类重新请求）→ 精确模式：筛选项参与的半径内按距离升序最多 300 条。
+     * 附近发布：不按半径裁剪，只按数量限制（每类最多 QUOTA_PER_CATEGORY，总量最多 300 条）。
+     * 不带筛选参数（地图页「全部分类」主拉取）→ 配额模式：每分类各取最近 QUOTA_PER_CATEGORY 条。
+     * 带任一筛选参数（切一级分类重新请求）→ 精确模式：筛选项参与后按距离升序最多 300 条。
      */
-    public List<NearbyItem> nearby(double latitude, double longitude, Integer radius,
+    public List<NearbyItem> nearby(double latitude, double longitude,
                                    Integer categoryId, String tag, String keyword) {
-        double effectiveRadius = radius == null || radius <= 0 ? 3000 : Math.min(radius, 20000);
         boolean filtered = categoryId != null && categoryId != 0
                 || !trimToEmpty(tag).isEmpty()
                 || !trimToEmpty(keyword).isEmpty();
         List<NearbyRow> rows = filtered
-                ? listingMapper.selectNearby(latitude, longitude, effectiveRadius,
+                ? listingMapper.selectNearby(latitude, longitude,
                         categoryId == null ? 0 : categoryId,
                         trimToEmpty(tag), trimToEmpty(keyword))
-                : listingMapper.selectNearbyQuota(latitude, longitude, effectiveRadius, QUOTA_PER_CATEGORY);
+                : listingMapper.selectNearbyQuota(latitude, longitude, QUOTA_PER_CATEGORY);
         return rows.stream().map(row -> {
             NearbyItem item = new NearbyItem();
             item.setId(row.getId());
@@ -169,7 +170,7 @@ public class ListingService {
                 // 仅首次设置过期，避免后续请求不断续期
                 redis.expire(key, Duration.ofSeconds(60));
             }
-            if (count != null && count > 6) {
+            if (count != null && count > 12) {
                 throw new ApiException("请求过于频繁，请稍后再试");
             }
         } catch (ApiException e) {
@@ -186,8 +187,7 @@ public class ListingService {
             throw new ApiException("发布不存在或已删除");
         }
         boolean owner = viewerId != null && viewerId == listing.getUserId().longValue();
-        boolean active = listing.getStatus() == Listing.STATUS_ACTIVE
-                && listing.getExpireAt().isAfter(OffsetDateTime.now());
+        boolean active = listing.getStatus() == Listing.STATUS_ACTIVE;
         if (!owner && !active) {
             throw new ApiException(switch (listing.getStatus()) {
                 case Listing.STATUS_OFFLINE -> "该发布已下架";

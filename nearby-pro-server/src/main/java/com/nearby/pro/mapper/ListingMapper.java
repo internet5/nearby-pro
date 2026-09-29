@@ -12,7 +12,7 @@ import java.util.List;
 public interface ListingMapper extends BaseMapper<Listing> {
 
     /**
-     * 附近发布主查询：PostGIS 球面距离 + 过滤。
+     * 附近发布主查询：PostGIS 球面距离 + 过滤，不按半径裁剪，只按数量限制。
      * tag 用 jsonb 包含判断；keyword 对标题模糊。空串参数表示不过滤。按距离升序最多 300 条。
      */
     @Select("""
@@ -24,25 +24,20 @@ public interface ListingMapper extends BaseMapper<Listing> {
             JOIN categories c ON c.id = l.category_id
             JOIN users u ON u.id = l.user_id
             WHERE l.status = 1
-              AND l.expire_at > now()
               AND (#{categoryId} = 0 OR l.category_id = #{categoryId})
               AND (#{tag} = '' OR l.tags @> to_jsonb(#{tag}::text))
               AND (#{keyword} = '' OR l.title LIKE '%' || #{keyword} || '%')
-              AND ST_DWithin(l.geom,
-                    ST_SetSRID(ST_MakePoint(#{longitude}, #{latitude}), 4326)::geography,
-                    #{radius})
             ORDER BY distance
             LIMIT 300
             """)
     List<NearbyRow> selectNearby(@Param("latitude") double latitude,
                                  @Param("longitude") double longitude,
-                                 @Param("radius") double radius,
                                  @Param("categoryId") int categoryId,
                                  @Param("tag") String tag,
                                  @Param("keyword") String keyword);
 
     /**
-     * 附近发布（配额模式）：半径内每个分类各取最近 perCategory 条，总量可控且各分类都有数据。
+     * 附近发布（配额模式）：每个分类各取最近 perCategory 条，总量可控且各分类都有数据，不按半径裁剪。
      * 供地图页主拉取使用（不带任何筛选参数），筛选由前端完成。
      */
     @Select("""
@@ -62,10 +57,6 @@ public interface ListingMapper extends BaseMapper<Listing> {
                 JOIN categories c ON c.id = l.category_id
                 JOIN users u ON u.id = l.user_id
                 WHERE l.status = 1
-                  AND l.expire_at > now()
-                  AND ST_DWithin(l.geom,
-                        ST_SetSRID(ST_MakePoint(#{longitude}, #{latitude}), 4326)::geography,
-                        #{radius})
             ) t
             WHERE rn <= #{perCategory}
             ORDER BY distance
@@ -73,7 +64,6 @@ public interface ListingMapper extends BaseMapper<Listing> {
             """)
     List<NearbyRow> selectNearbyQuota(@Param("latitude") double latitude,
                                       @Param("longitude") double longitude,
-                                      @Param("radius") double radius,
                                       @Param("perCategory") int perCategory);
 
     /** 详情浏览计数：原子自增，只在非作者访问时调用 */
@@ -83,8 +73,4 @@ public interface ListingMapper extends BaseMapper<Listing> {
     /** 上架中数量：发布/重新上架前的名额校验 */
     @Select("SELECT COUNT(*) FROM listings WHERE user_id = #{userId} AND status = 1")
     int countActiveByUser(@Param("userId") long userId);
-
-    /** 定时任务：把已过期的上架记录刷成「过期」状态 */
-    @Update("UPDATE listings SET status = 3 WHERE status = 1 AND expire_at <= now()")
-    int markExpired();
 }

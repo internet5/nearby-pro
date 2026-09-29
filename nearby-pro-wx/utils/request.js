@@ -14,6 +14,13 @@ function getUserInfo() {
   return wx.getStorageSync(USER_KEY) || null
 }
 
+// 合并更新本地缓存的用户信息（编辑头像昵称后回写）
+function updateUserInfo(patch) {
+  const next = Object.assign({}, getUserInfo() || {}, patch)
+  wx.setStorageSync(USER_KEY, next)
+  return next
+}
+
 function clearAuth() {
   wx.removeStorageSync(TOKEN_KEY)
 }
@@ -123,5 +130,6 @@ module.exports = {
   ensureLogin,
   forceLogin,
   getToken,
-  getUserInfo
+  getUserInfo,
+  updateUserInfo
 }
